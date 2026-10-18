@@ -1,0 +1,2795 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="BeatSurfer Triki - futurystyczna gra rytmiczna 3D sterowana kontrolerem Żabka Triki, klawiaturą lub dotykiem na ekranie. Wydanie dla organizacji xardag.">
+    <meta name="author" content="xardag">
+    <meta name="theme-color" content="#060913">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="BeatSurfer Triki - Cyber Highway | xardag">
+    <meta property="og:description" content="Futurystyczny Rhythm Cyber-Highway sterowany kontrolerem Żabka Triki, klawiaturą lub dotykiem.">
+    <meta property="og:url" content="https://xardag.github.io/">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2300f0ff' d='M4 24L16 4l12 20-12-6z'/%3E%3Ccircle cx='16' cy='18' r='3' fill='%23ff007f'/%3E%3C/svg%3E">
+    <title>BeatSurfer Triki - Cyber Highway | xardag</title>
+    <style>
+        :root {
+            --bg-color: #060913;
+            --panel-bg: rgba(13, 20, 36, 0.94);
+            --panel-border: #1f3052;
+            --accent-cyan: #00f0ff;
+            --accent-pink: #ff007f;
+            --accent-gold: #ffd700;
+            --accent-purple: #9d00ff;
+            --text-main: #e2e8f0;
+            --text-dim: #8fa0b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at 50% 20%, #15162c 0%, #060913 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 8px;
+            width: 100%;
+            max-width: 980px;
+        }
+
+        .org-nav {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .org-nav a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--panel-bg);
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--panel-border);
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .org-nav a:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+            transform: translateY(-1px);
+        }
+
+        header h1 {
+            font-size: clamp(1.4rem, 4.5vw, 2.1rem);
+            color: #fff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px var(--accent-cyan), 0 0 35px var(--accent-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        header p {
+            color: var(--text-dim);
+            font-size: clamp(0.82rem, 2.2vw, 0.92rem);
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        /* Top HUD Bar */
+        .hud-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 980px;
+            width: 100%;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 8px 18px;
+            margin-bottom: 10px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .hud-item span { color: var(--text-dim); font-size: 0.8rem; }
+        .hud-item strong { font-size: 1.25rem; font-weight: 900; }
+        .hud-item strong.cyan { color: var(--accent-cyan); text-shadow: 0 0 10px rgba(0,240,255,0.4); }
+        .hud-item strong.pink { color: var(--accent-pink); text-shadow: 0 0 10px rgba(255,0,127,0.4); }
+        .hud-item strong.gold { color: var(--accent-gold); text-shadow: 0 0 10px rgba(255,215,0,0.4); }
+
+        .star-power-bar-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .star-power-track {
+            width: 75px;
+            height: 12px;
+            background: #080c16;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .star-power-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00f0ff, #ffd700);
+            transition: width 0.1s ease;
+        }
+        .star-power-fill.ready {
+            background: linear-gradient(90deg, #00f0ff, #ffd700, #ff007f);
+            animation: pulseStarPower 0.5s infinite alternate;
+        }
+        .star-power-fill.active-sp {
+            background: linear-gradient(90deg, #ffd700, #ff8800);
+            box-shadow: 0 0 12px #ffd700;
+        }
+        @keyframes pulseStarPower {
+            0% { box-shadow: 0 0 4px #00f0ff; filter: brightness(1.0); }
+            100% { box-shadow: 0 0 14px #ffd700; filter: brightness(1.5); }
+        }
+        .hud-streak {
+            font-size: 0.75rem;
+            color: var(--accent-pink);
+            margin-left: 2px;
+        }
+        .new-record {
+            animation: recordPulse 0.5s infinite alternate;
+        }
+        @keyframes recordPulse {
+            0% { transform: scale(1); color: #ffd700; }
+            100% { transform: scale(1.15); color: #fff; text-shadow: 0 0 12px #ffd700; }
+        }
+
+        /* Button Fullscreen */
+        .btn-fs {
+            background: #141f35;
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            font-weight: 700;
+            user-select: none;
+        }
+        .btn-fs:hover {
+            background: rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-fs:active {
+            transform: translateY(0);
+        }
+
+        /* Main Game Layout */
+        .main-layout {
+            display: flex;
+            gap: 18px;
+            max-width: 980px;
+            width: 100%;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .game-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 560px;
+            max-width: 100%;
+        }
+
+        /* Canvas Arena Container */
+        .game-screen {
+            position: relative;
+            max-width: 100%;
+            width: 100%;
+            aspect-ratio: 560 / 520;
+            height: auto;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 2px solid var(--panel-border);
+            box-shadow: 0 0 35px rgba(255, 0, 127, 0.2), 0 0 35px rgba(0, 240, 255, 0.2), 0 10px 40px rgba(0,0,0,0.8);
+            background: #04060c;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        canvas#gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Overlays */
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(4, 6, 14, 0.92);
+            backdrop-filter: blur(6px);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+            padding: 16px 14px;
+            z-index: 20;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .overlay-screen h2 {
+            font-size: 2.2rem;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+            text-shadow: 0 0 18px var(--accent-cyan), 0 0 30px var(--accent-pink);
+        }
+
+        .overlay-screen p {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            line-height: 1.6;
+            max-width: 440px;
+        }
+
+        .music-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 14px;
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .file-upload-btn {
+            background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%);
+            color: #fff;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+            transition: all 0.2s;
+        }
+        .file-upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.6);
+        }
+
+        input[type="file"] { display: none; }
+
+        .preset-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .preset-btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            background: #121c2e;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover, .preset-btn.active {
+            border-color: var(--accent-cyan);
+            color: #fff;
+            background: rgba(0, 240, 255, 0.15);
+        }
+
+        /* Buttons & HUD */
+        .btn-ui {
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #fff;
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, #0077ff 100%);
+            color: #060913;
+            font-weight: 800;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+        .btn-blue:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 240, 255, 0.6); }
+
+        .btn-slash {
+            background: linear-gradient(135deg, #ff007f 0%, #ffd700 100%);
+            color: #fff;
+            font-weight: 900;
+            font-size: 1.15rem;
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.5);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+        .btn-slash:hover { transform: translateY(-2px); box-shadow: 0 0 35px rgba(255, 0, 127, 0.8); }
+        .btn-slash:active { transform: translateY(1px); }
+
+        .btn-secondary {
+            background: #151f33;
+            border-color: var(--panel-border);
+            color: var(--text-main);
+        }
+        .btn-secondary:hover { background: #1c2b48; }
+
+        .btn-starpower {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8800 100%);
+            color: #060913;
+            font-weight: 900;
+            font-size: 0.95rem;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+            transition: all 0.2s;
+        }
+        .btn-starpower:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
+        .btn-starpower:active { transform: translateY(1px); }
+
+        /* On-Screen Mobile Touch Controls */
+        .mobile-touch-hud {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            margin-top: 10px;
+            touch-action: manipulation;
+        }
+
+        .touch-ctrl-btn {
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            min-height: 48px;
+            font-weight: 800;
+        }
+
+        /* Fullscreen styles */
+        body.is-fullscreen {
+            padding: 6px;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
+        }
+        body.is-fullscreen header {
+            display: none;
+        }
+        body.is-fullscreen .hud-bar {
+            margin-bottom: 6px;
+            padding: 6px 12px;
+            max-width: 900px;
+        }
+        body.is-fullscreen .main-layout {
+            height: calc(100vh - 65px);
+            max-height: calc(100vh - 65px);
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+        body.is-fullscreen .game-column {
+            height: 100%;
+            max-height: 100%;
+            justify-content: center;
+        }
+        body.is-fullscreen .game-screen {
+            max-height: calc(100vh - 130px);
+            max-width: calc((100vh - 130px) * (560 / 520));
+            width: 100%;
+            aspect-ratio: 560 / 520;
+        }
+        body.is-fullscreen .sidebar-column {
+            display: none;
+        }
+        body.is-fullscreen footer {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 6px;
+            }
+            .hud-bar {
+                padding: 6px 10px;
+                gap: 6px;
+                font-size: 0.8rem;
+                justify-content: space-around;
+            }
+            .hud-item {
+                gap: 4px;
+                font-size: 0.8rem;
+            }
+            .hud-item strong {
+                font-size: 1.05rem;
+            }
+            .star-power-track {
+                width: 55px;
+                height: 10px;
+            }
+            .btn-fs {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+            .mobile-touch-hud {
+                gap: 6px;
+            }
+            .touch-ctrl-btn {
+                min-height: 48px;
+                padding: 10px 4px !important;
+                font-size: 0.8rem !important;
+            }
+            #btnTouchStarPower {
+                font-size: 0.85rem !important;
+            }
+            .overlay-screen h2 {
+                font-size: 1.6rem;
+            }
+            .overlay-screen p {
+                font-size: 0.82rem;
+                margin-bottom: 10px;
+            }
+            .music-box {
+                padding: 10px;
+            }
+            .sidebar-column {
+                width: 100%;
+            }
+        }
+
+        /* Sidebar Column */
+        .sidebar-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 380px;
+            max-width: 100%;
+        }
+
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .card-header {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 6px;
+        }
+
+        .sensors-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        .sensor-cell {
+            background: #080c16;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sensor-cell span { color: var(--text-dim); font-size: 0.7rem; }
+        .sensor-cell strong { color: var(--accent-cyan); font-size: 0.9rem; margin-top: 2px; }
+
+        /* Spectrum Bar */
+        .spectrum-bar {
+            width: 100%;
+            height: 34px;
+            background: #080c16;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            margin-top: 8px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            padding: 2px;
+            overflow: hidden;
+        }
+
+        .spectrum-col {
+            flex: 1;
+            background: linear-gradient(180deg, var(--accent-pink) 0%, var(--accent-cyan) 100%);
+            border-radius: 2px;
+            min-height: 2px;
+            transition: height 0.05s ease;
+        }
+
+        .info-list {
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+            padding-left: 16px;
+        }
+        .info-list strong { color: var(--text-main); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="org-nav">
+            <a href="https://github.com/xardag" target="_blank" rel="noopener noreferrer">
+                <svg height="15" width="15" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: text-bottom; margin-right: 5px;">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+                github.com/xardag
+            </a>
+        </div>
+        <h1>⚡ BeatSurfer Triki</h1>
+        <p>Futurystyczny <strong>Rhythm Cyber-Highway</strong> sterowany kapslem <strong>Żabka Triki</strong>, klawiaturą lub dotykiem!</p>
+    </header>
+
+    <!-- Top HUD Bar -->
+    <div class="hud-bar">
+        <div class="hud-item">
+            <span>🏆 WYNIK:</span>
+            <strong id="scoreVal" class="cyan">0</strong>
+        </div>
+        <div class="hud-item">
+            <span>🔥 MNOŻNIK:</span>
+            <strong id="multiplierVal" class="pink">x1</strong>
+            <span id="streakVal" class="hud-streak">(Seria: 0)</span>
+        </div>
+        <div class="hud-item">
+            <span>⭐ STAR POWER:</span>
+            <div class="star-power-bar-box">
+                <div class="star-power-track">
+                    <div id="starPowerFill" class="star-power-fill"></div>
+                </div>
+                <strong id="starPowerText" class="gold">0%</strong>
+            </div>
+        </div>
+        <div class="hud-item">
+            <span>👑 REKORD:</span>
+            <strong id="highScoreVal" class="gold">0</strong>
+        </div>
+        <div class="hud-item">
+            <span>🎵 UTWÓR:</span>
+            <span id="trackNameDisplay" style="color: #fff; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Cyber Drift</span>
+        </div>
+        <div class="hud-item" style="margin-left: auto;">
+            <button id="btnFullscreen" class="btn-fs" onclick="toggleFullScreen()" title="Włącz tryb pełnego ekranu (klawisz F)">⛶ Pełny ekran</button>
+        </div>
+    </div>
+
+    <!-- Main Game Layout -->
+    <div class="main-layout">
+        <!-- Game Column -->
+        <div class="game-column" id="gameColumn">
+            <!-- Canvas Arena -->
+            <div class="game-screen" id="gameScreen">
+            <canvas id="gameCanvas" width="560" height="520"></canvas>
+
+            <!-- Start / Music Picker Overlay -->
+            <div id="startOverlay" class="overlay-screen">
+                <h2>BEATSURFER TRIKI</h2>
+                <p>
+                    Surfuj po neonowej autostradzie, zbieraj nuty pod rząd (Combo x1, x2, x3, x4) i <strong>aktywuj Star Power przyciskiem kapsla (aż do x8!)</strong>.<br>
+                    Każdy opuszczony punkt psuje mnożnik! Trasa jest w 100% deterministyczna dla każdego utworu – pobij rekord trasy!
+                </p>
+
+                <div class="music-box">
+                    <label class="file-upload-btn" for="audioFileInput">
+                        <span>📂 Wybierz własny plik MP3 / WAV</span>
+                    </label>
+                    <input type="file" id="audioFileInput" accept="audio/*" onchange="handleFileUpload(event)">
+
+                    <div style="font-size: 0.75rem; color: var(--text-dim); text-align: center;">- LUB WYBIERZ UTWÓR DEMO -</div>
+
+                    <div class="preset-buttons">
+                        <button class="preset-btn active" onclick="loadDemoPreset('cyber', event)">⚡ Cyber Drift (130 BPM)</button>
+                        <button class="preset-btn" onclick="loadDemoPreset('overdrive', event)">🚀 Synth Overdrive (142 BPM)</button>
+                        <button class="preset-btn" onclick="loadDemoPreset('neon', event)">🌃 Neon Pulse (124 BPM)</button>
+                    </div>
+                </div>
+
+                <button class="btn-ui btn-blue" style="padding: 12px 30px; font-size: 1.15rem;" onclick="startGame()">
+                    ▶️ ROZPOCZNIJ ROZGRYWKĘ (Spacja)
+                </button>
+            </div>
+
+            <!-- End / Results Overlay -->
+            <div id="endOverlay" class="overlay-screen" style="display: none;">
+                <h2 id="endTitle">🏁 TRASA UKOŃCZONA!</h2>
+                <div style="background: var(--panel-bg); border: 2px solid var(--accent-cyan); border-radius: 12px; padding: 20px; width: 100%; max-width: 450px; margin-bottom: 16px; text-align: center;">
+                    <div id="endNewRecordBadge" style="display: none; background: linear-gradient(90deg, #ffd700, #ff007f); color: #000; font-weight: 900; font-size: 0.9rem; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; display: inline-block;">
+                        👑 NOWY REKORD TRASY!
+                    </div>
+                    <div style="font-size: 1.15rem; font-weight: bold; color: #fff; margin-bottom: 8px;">
+                        TWÓJ WYNIK: <strong id="endScore" style="color: var(--accent-cyan); font-size: 1.8rem;">0</strong>
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 12px;">
+                        Dotychczasowy Rekord: <strong id="endHighScore" style="color: var(--accent-gold);">0</strong>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.88rem; border-top: 1px solid var(--panel-border); padding-top: 10px; text-align: left;">
+                        <div>🔥 MAKS SERIA: <strong id="endCombo" style="color: var(--accent-pink);">0</strong></div>
+                        <div>🎯 TRAFIENIA: <strong id="endAccuracy" style="color: #00ff88;">0 / 0 (0%)</strong></div>
+                        <div>⭐ STAR POWER: <strong id="endStarPower" style="color: var(--accent-gold);">0x</strong></div>
+                        <div>⚡ FULL COMBO: <strong id="endFC" style="color: #00f0ff;">NIE</strong></div>
+                    </div>
+                    <div id="endRank" style="margin-top: 14px; font-size: 1.45rem; font-weight: 900; color: #ffd700;">
+                        🏆 RANGA: S
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+                    <button class="btn-ui btn-blue" style="padding: 12px 28px; font-size: 1.1rem;" onclick="startGame()">
+                        🔄 ZAGRAJ PONOWNIE (Spacja)
+                    </button>
+                    <button class="btn-ui btn-secondary" style="padding: 12px 20px; font-size: 1.0rem;" onclick="openStartMenu()">
+                        🎵 WYBIERZ UTWÓR / MENU
+                    </button>
+                </div>
+            </div>
+
+            </div>
+
+            <!-- On-Screen Mobile Touch Controls -->
+            <div class="mobile-touch-hud" id="mobileTouchHud">
+                <button type="button" class="btn-ui btn-secondary touch-ctrl-btn" style="flex:1;" id="btnTouchLeft">⬅️ LEWY</button>
+                <button type="button" class="btn-ui btn-secondary touch-ctrl-btn" style="flex:1;" id="btnTouchCenter">⏺️ ŚRODEK</button>
+                <button type="button" class="btn-ui btn-secondary touch-ctrl-btn" style="flex:1;" id="btnTouchRight">PRAWY ➡️</button>
+                <button type="button" id="btnTouchStarPower" class="btn-ui btn-starpower touch-ctrl-btn" style="flex:2.0;">⭐ STAR POWER</button>
+            </div>
+        </div>
+
+        <!-- Sidebar Column -->
+        <div class="sidebar-column">
+            <!-- Triki BLE Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span>📡 Kontroler Triki (BLE)</span>
+                    <span id="bleStatus" style="font-size: 0.8rem; font-weight: bold; color: var(--accent-pink);">● Rozłączony</span>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <button class="btn-ui btn-blue" id="btnConnect" style="flex: 1;" onclick="connectTriki()">🔗 Połącz z Triki</button>
+                    <button class="btn-ui btn-secondary" id="btnDisconnect" style="flex: 1;" onclick="disconnectTriki()" disabled>Rozłącz</button>
+                </div>
+
+                <!-- Mode & Sensitivity -->
+                <div style="background:#090e18;border:1px solid var(--panel-border);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <span style="font-size:0.8rem;color:var(--text-dim);font-weight:bold;">TRYB STEROWANIA:</span>
+                        <select id="trikiModeSelect" onchange="onSteeringModeChange(this.value)" style="background:#182238;color:#fff;border:1px solid var(--panel-border);border-radius:4px;padding:3px 8px;font-size:0.8rem;cursor:pointer;">
+                            <option value="tabletop" selected>Biurko (Obrót po blacie) [Zalecany]</option>
+                            <option value="tilt">W dłoni (Kropka «ż» pod lewym palcem)</option>
+                        </select>
+                    </div>
+                    <div id="modeHint" style="font-size:0.73rem;color:var(--accent-cyan);margin-bottom:8px;line-height:1.3;padding:5px 8px;background:rgba(0,240,255,0.06);border-radius:4px;border:1px solid rgba(0,240,255,0.15);">
+                        💡 Kapsel leży płasko na blacie biurka. Obracaj nim w lewo i w prawo jak gałką lub kierownicą.
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:0.8rem;color:var(--text-dim);">Czułość skrętu:</span>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <input type="range" id="sensRange" min="1.0" max="10.0" step="0.5" value="4.5" oninput="onSensChange(this.value)" style="width:75px;accent-color:var(--accent-cyan);cursor:pointer;">
+                            <strong id="sensVal" style="font-size:0.85rem;color:var(--accent-cyan);min-width:32px;">4.5x</strong>
+                            <button id="btnCalibrate" class="btn-ui btn-secondary" style="padding:2px 8px;font-size:0.75rem;" onclick="calibrateZero()" title="Kalibruje aktualną pozycję dłoni/biurka jako idealny środek (0°)">🎯 Kalibruj środek</button>
+                        </div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <span style="font-size:0.78rem;color:var(--text-dim);">Kierunek skrętu:</span>
+                        <button id="btnInvert" class="btn-ui btn-secondary" style="padding:3px 10px;font-size:0.75rem;" onclick="toggleTrikiInvert()" title="Odwraca kierunek skrętu (w powietrzu i na biurku)">🔄 Zwrot: Normalny</button>
+                    </div>
+                </div>
+
+                <div class="sensors-grid">
+                    <div class="sensor-cell">
+                        <span>SKRĘT (ROLL/KĄT)</span>
+                        <strong id="sensorRoll">0.0°</strong>
+                    </div>
+                    <div class="sensor-cell">
+                        <span>PRZYCISK TRIKI</span>
+                        <strong id="sensorBtn">Puszczony</strong>
+                    </div>
+                    <div class="sensor-cell">
+                        <span>PRZECIĄŻENIE (ACCEL)</span>
+                        <strong id="sensorG">1.00 G</strong>
+                    </div>
+                    <div class="sensor-cell">
+                        <span>DIODA LED (STAR POWER)</span>
+                        <strong id="sensorLed">Wyłączona</strong>
+                    </div>
+                </div>
+
+                <div class="spectrum-bar" id="spectrumBar"></div>
+                <div style="font-size: 0.72rem; color: var(--text-dim); text-align: center; margin-top: 4px;" id="bpmDisplay">Audio Spectrum</div>
+            </div>
+
+            <!-- Rules & Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <span>🎮 Zasady rytmu & High Score</span>
+                </div>
+                <ul class="info-list">
+                    <li>🕹️ <strong>Biurko (Domyślny, super precyzyjny):</strong> Kapsel leży na blacie diodą w stronę ekranu. Obrót lewo/prawo płynnie steruje po torach.</li>
+                    <li>✈️ <strong>W dłoni (Kropka nad «ż» pod lewym palcem):</strong> Trzymaj kapsel poziomo tak, aby kropka nad «z» w napisie «ż» znajdowała się pod Twoim lewym palcem. Kliknij <strong>🎯 Kalibruj środek</strong>. Przechylenie kapsla w lewo skręca w lewo, w prawo w prawo!</li>
+                    <li>⭐ <strong>Star Power (+10% za gwiazdkę):</strong> Zbieranie pastelowych gwiazdek ładuje pasek (+10%). Zwykłe klocki nie nabijają Star Power. Gdy Star Power jest aktywny, zebranie gwiazdki nadal dodaje +10% i przedłuża czas trwania!</li>
+                    <li>🔥 <strong>Combo Mnożnik:</strong> Zbieranie nut podbija mnożnik (10 nut = x2, 20 nut = x3, 30+ nut = x4). Pominięcie nuty resetuje serię i daje subtelny odgłos.</li>
+                    <li>👑 <strong>Trasa Deterministyczna:</strong> Każdy utwór (w tym wrzucony MP3) generuje w 100% stały układ trasy, umożliwiając bicie rekordów (High Score)!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer style="margin-top: 24px; text-align: center; font-size: 0.8rem; color: var(--text-dim); padding-bottom: 16px;">
+        BeatSurfer Triki &bull; Wydanie dla organizacji <a href="https://github.com/xardag" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); text-decoration: none; font-weight: bold;">xardag</a> &bull; GitHub Pages
+    </footer>
+
+    <script>
+        // =====================================================================
+        // WEB AUDIO API SYNTHESIZER & FFT MUSIC ENGINE
+        // =====================================================================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let analyser = null;
+        let audioSource = null;
+        let audioBuffer = null;
+        let isAudioPlaying = false;
+        let currentTrackTitle = "Cyber Drift (130 BPM)";
+        let currentTrackHash = "cyber";
+        let currentHighScore = 0;
+
+        const FFT_SIZE = 256;
+        const freqData = new Uint8Array(FFT_SIZE / 2);
+        let bassEnergy = 0;
+        let midEnergy = 0;
+        let trebleEnergy = 0;
+        let prevBassEnergy = 0;
+        let prevMidEnergy = 0;
+
+        // Visual Spectrum Bar (32 display columns)
+        const spectrumBar = document.getElementById('spectrumBar');
+        const DISPLAY_BARS = 32;
+        for (let i = 0; i < DISPLAY_BARS; i++) {
+            const col = document.createElement('div');
+            col.className = 'spectrum-col';
+            spectrumBar.appendChild(col);
+        }
+        const spectrumCols = spectrumBar.children;
+
+        function initAudioEngine() {
+            if (!analyser) {
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = FFT_SIZE;
+                analyser.smoothingTimeConstant = 0.5;
+            }
+        }
+
+        // SFX: Wyłączone zbędne odgłosy (aby nie zagłuszać muzyki)
+        function playCyberSlashSound() {}
+        function playHitSound() {}
+
+        // SFX: Strata serii (subtelne stłumienie błędu - ciche, nie zagłusza muzyki)
+        function playMissSound() {
+            if (audioCtx.state === 'suspended') { try { audioCtx.resume(); } catch(e){} }
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(110, now);
+                osc.frequency.exponentialRampToValueAtTime(45, now + 0.16);
+                gain.gain.setValueAtTime(0.09, now); // Niski, zbalansowany poziom (nie zagłusza utworu)
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.16);
+            } catch (e) {}
+        }
+
+        // SFX: Star Power Overdrive (Zbalansowany, czysty akord z bezpieczną głośnością)
+        function playStarPowerSound() {
+            if (audioCtx.state === 'suspended') { try { audioCtx.resume(); } catch(e){} }
+            try {
+                const now = audioCtx.currentTime;
+                const masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(0.12, now); // Bezpieczny master gain
+                masterGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                masterGain.connect(audioCtx.destination);
+
+                [330, 440, 554.37, 659.25, 880].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.03);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 1.25, now + idx * 0.03 + 0.3);
+                    osc.connect(masterGain);
+                    osc.start(now + idx * 0.03);
+                    osc.stop(now + idx * 0.03 + 0.35);
+                });
+            } catch (e) {}
+        }
+
+        // High Score Management (localStorage per track hash/title)
+        function getTrackKey() {
+            const cleanTitle = (currentTrackTitle || 'track').replace(/[^a-zA-Z0-9]/g, '_');
+            return 'beatsurfer_hs_' + (currentTrackHash ? currentTrackHash : cleanTitle);
+        }
+
+        function loadHighScore() {
+            try {
+                const val = localStorage.getItem(getTrackKey());
+                return val ? parseInt(val, 10) : 0;
+            } catch (e) {
+                return 0;
+            }
+        }
+
+        function saveHighScore(newScore, maxStreak, accuracy) {
+            try {
+                const current = loadHighScore();
+                if (newScore > current) {
+                    localStorage.setItem(getTrackKey(), newScore.toString());
+                    localStorage.setItem(getTrackKey() + '_streak', maxStreak.toString());
+                    localStorage.setItem(getTrackKey() + '_acc', accuracy.toString());
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // =====================================================================
+        // DETERMINISTIC TRACK CHART GENERATOR (100% REPEATABLE HIGH SCORE)
+        // =====================================================================
+        let activeChart = [];
+        let totalTrackNotes = 0;
+
+        function generateDeterministicChart(buffer) {
+            const sampleRate = buffer.sampleRate;
+            const channelData = buffer.getChannelData(0);
+            const duration = buffer.duration;
+
+            // 32-bit deterministic checksum from sample buffer
+            let hash = 0;
+            const stride = Math.max(1, Math.floor(channelData.length / 4000));
+            for (let i = 0; i < channelData.length; i += stride) {
+                hash = ((hash << 5) - hash) + Math.round(channelData[i] * 1000);
+                hash |= 0;
+            }
+            const seedBase = Math.abs(hash) || 77712345;
+
+            // LCG Deterministic PRNG seeded by audio waveform
+            let seed = seedBase;
+            function deterministicRandom() {
+                seed = (seed * 1664525 + 1013904223) % 4294967296;
+                return seed / 4294967296;
+            }
+
+            // Energy analysis in fixed 30ms windows
+            const windowSec = 0.03;
+            const windowFrames = Math.max(1, Math.floor(sampleRate * windowSec));
+            const totalWindows = Math.floor(channelData.length / windowFrames);
+
+            const energy = new Float32Array(totalWindows);
+            let totalEnergy = 0;
+
+            for (let w = 0; w < totalWindows; w++) {
+                let sumSq = 0;
+                const offset = w * windowFrames;
+                const end = Math.min(channelData.length, offset + windowFrames);
+                for (let i = offset; i < end; i++) {
+                    const s = channelData[i];
+                    sumSq += s * s;
+                }
+                const rms = Math.sqrt(sumSq / windowFrames);
+                energy[w] = rms;
+                totalEnergy += rms;
+            }
+
+            const avgEnergy = totalEnergy / Math.max(1, totalWindows);
+
+            const chart = [];
+            const minNoteSpacingSec = 0.22; // minimum 220ms spacing
+            const minSpacingWindows = Math.ceil(minNoteSpacingSec / windowSec);
+            let lastNoteWindow = -minSpacingWindows;
+            let prevLane = 1;
+
+            const startWindow = Math.floor(1.5 / windowSec); // 1.5s intro
+            const endWindow = Math.floor((duration - 2.0) / windowSec);
+
+            for (let w = startWindow; w < endWindow; w++) {
+                const e = energy[w];
+                const prevE = energy[w - 1] || 0;
+                const nextE = energy[w + 1] || 0;
+
+                const isLocalPeak = (e > prevE) && (e >= nextE);
+                const isAboveThreshold = e > avgEnergy * 1.12;
+                const isOnsetRise = (e - (energy[w - 2] || 0)) > (avgEnergy * 0.18);
+                const forceNote = (w - lastNoteWindow) > Math.floor(1.2 / windowSec);
+
+                if (((isLocalPeak && isAboveThreshold && isOnsetRise) || forceNote) && (w - lastNoteWindow >= minSpacingWindows)) {
+                    const noteTime = w * windowSec;
+                    const r = deterministicRandom();
+
+                    let lane;
+                    if (r < 0.45) {
+                        lane = 1; // Center
+                    } else if (r < 0.72) {
+                        lane = (prevLane === 0) ? 2 : 0;
+                    } else {
+                        lane = (prevLane === 2) ? 0 : 2;
+                    }
+                    prevLane = lane;
+
+                    // Star Note (⭐) sequences every ~16 notes for Star Power rush
+                    const isStar = (chart.length % 16 === 14 || chart.length % 16 === 15);
+
+                    // Kolory: intensywne dla klocków, pastelowe w kolorze toru dla gwiazdek ⭐
+                    const LANE_INTENSE = ['#ff003c', '#ffea00', '#0088ff']; // Czerwony (0), Żółty (1), Niebieski (2)
+                    const LANE_PASTEL  = ['#ff7a93', '#fff385', '#7ec8ff']; // Pastelowy Czerwony, Pastelowy Żółty, Pastelowy Błękit
+                    const color = isStar ? LANE_PASTEL[lane] : LANE_INTENSE[lane];
+
+                    chart.push({
+                        id: chart.length,
+                        time: noteTime,
+                        lane: lane,
+                        color: color,
+                        isStar: isStar,
+                        hit: false,
+                        missed: false,
+                        perfect: false,
+                        z: 0
+                    });
+
+                    lastNoteWindow = w;
+                }
+            }
+
+            return {
+                chart: chart,
+                totalNotes: chart.length,
+                hash: Math.abs(hash).toString(16)
+            };
+        }
+
+        function prepareChartForCurrentTrack() {
+            if (!audioBuffer) return;
+            const res = generateDeterministicChart(audioBuffer);
+            activeChart = res.chart;
+            totalTrackNotes = res.totalNotes;
+            currentTrackHash = res.hash;
+            currentHighScore = loadHighScore();
+            const hsEl = document.getElementById('highScoreVal');
+            if (hsEl) {
+                hsEl.textContent = currentHighScore;
+                hsEl.classList.remove('new-record');
+            }
+        }
+
+        // File Upload (MP3, WAV, OGG)
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            currentTrackTitle = file.name.replace(/\.[^/.]+$/, "");
+            document.getElementById('trackNameDisplay').textContent = currentTrackTitle;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    initAudioEngine();
+                    const arrayBuffer = e.target.result;
+                    audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                    prepareChartForCurrentTrack();
+                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                } catch (err) {
+                    alert('Nie udało się zdekodować pliku audio. Wybierz poprawny plik MP3, WAV lub OGG.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Procedural High-Energy Synthwave Generator
+        function loadDemoPreset(type, ev) {
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            if (ev && ev.target) {
+                ev.target.classList.add('active');
+            } else if (typeof event !== 'undefined' && event && event.target && event.target.classList) {
+                event.target.classList.add('active');
+            }
+
+            if (type === 'cyber') currentTrackTitle = "Cyber Drift (130 BPM)";
+            else if (type === 'overdrive') currentTrackTitle = "Synth Overdrive (142 BPM)";
+            else currentTrackTitle = "Neon Pulse (124 BPM)";
+
+            document.getElementById('trackNameDisplay').textContent = currentTrackTitle;
+            audioBuffer = generateProceduralTrack(type);
+            prepareChartForCurrentTrack();
+        }
+
+        function generateProceduralTrack(preset) {
+            const sampleRate = audioCtx.sampleRate;
+            const duration = 120; // 2 minutes
+            const numFrames = sampleRate * duration;
+            const buffer = audioCtx.createBuffer(2, numFrames, sampleRate);
+            const left = buffer.getChannelData(0);
+            const right = buffer.getChannelData(1);
+
+            const bpm = preset === 'overdrive' ? 142 : preset === 'cyber' ? 130 : 124;
+            const beatLen = (60 / bpm) * sampleRate;
+            const bassNotes = [110, 110, 130.81, 146.83, 98, 98, 110, 123.47]; // A minor driving bass
+
+            for (let i = 0; i < numFrames; i++) {
+                const beatPos = i % beatLen;
+                const beatFrac = beatPos / beatLen;
+                const beatIndex = Math.floor(i / beatLen);
+                const subBeat = (i % (beatLen / 4)) / (beatLen / 4);
+
+                let s = 0;
+
+                // 1. Kick Drum (every beat - punchy transient)
+                if (beatFrac < 0.22) {
+                    const kickDecay = 1 - (beatFrac / 0.22);
+                    const kickFreq = 150 * kickDecay + 42;
+                    s += Math.sin(kickFreq * (beatFrac * 0.22) * Math.PI * 2) * kickDecay * 0.85;
+                }
+
+                // 2. Snare / Clap (beats 2 & 4)
+                if ((beatIndex % 2 === 1) && beatFrac < 0.2) {
+                    const snareDecay = 1 - (beatFrac / 0.2);
+                    s += (Math.random() * 2 - 1) * snareDecay * 0.5;
+                }
+
+                // 3. 16th Rolling Synth Bassline
+                const note = bassNotes[(Math.floor(i / (beatLen * 2))) % bassNotes.length];
+                const bassDecay = 1 - subBeat;
+                const bassFreq = note * (1 + (beatIndex % 2 === 0 ? 0 : 0.5));
+                s += (Math.sin(bassFreq * (i / sampleRate) * Math.PI * 2) > 0 ? 0.32 : -0.32) * bassDecay * 0.35;
+
+                // 4. Synth Arp Lead
+                const arpScale = [440, 523.25, 659.25, 783.99, 880];
+                const arpNote = arpScale[(Math.floor(i / (beatLen / 4))) % arpScale.length];
+                s += Math.sin(arpNote * (i / sampleRate) * Math.PI * 2) * 0.16;
+
+                left[i] = Math.max(-1, Math.min(1, s));
+                right[i] = Math.max(-1, Math.min(1, s * 0.95 + left[Math.max(0, i - 120)] * 0.05));
+            }
+            return buffer;
+        }
+
+        // =====================================================================
+        // HARDWARE BLE & SENSORS (TRIKI PROTOCOL)
+        // =====================================================================
+        const NUS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+        const NUS_RX_CHAR_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+        const NUS_TX_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+        const NUS_LED_CHAR_UUID= '6e400004-b5a3-f393-e0a9-e50e24dcca9e';
+
+        const GYRO_SCALE = 131.0;
+        const ACCEL_SCALE = 2048.0;
+
+        let trikiDevice = null;
+        let trikiTxChar = null;
+        let trikiRxChar = null;
+        let trikiLedChar = null;
+        let trikiBuffer = new Uint8Array(0);
+        let trikiConnected = false;
+
+        let rollAngle = 0;
+        let pitchAngle = 0;
+        let buttonState = false;
+        let lastSampleTime = 0;
+        let filterInit = false;
+        let trikiSteeringMode = (function() {
+            try { return localStorage.getItem('beatsurfer_triki_mode') || 'tabletop'; } catch(e) { return 'tabletop'; }
+        })();
+        let steeringSens = (function() {
+            try { return parseFloat(localStorage.getItem('beatsurfer_steering_sens') || '4.5'); } catch(e) { return 4.5; }
+        })();
+        let trikiInvert = (function() {
+            try { return localStorage.getItem('beatsurfer_triki_invert') === 'true'; } catch(e) { return false; }
+        })();
+        let tabletopAngle = 0;
+        let airZeroOffset = (function() {
+            try { return parseFloat(localStorage.getItem('beatsurfer_air_zero') || '0'); } catch(e) { return 0; }
+        })();
+        let rawRollAngle = 0;
+
+        function calibrateZero() {
+            // Zapisuje aktualną pozycję kapsla jako idealne 0.0°
+            airZeroOffset = rawRollAngle;
+            tabletopAngle = 0;
+            rollAngle = 0;
+            try { localStorage.setItem('beatsurfer_air_zero', airZeroOffset.toFixed(2)); } catch(e){}
+            updateControlUI();
+
+            const btnCal = document.getElementById('btnCalibrate');
+            if (btnCal) {
+                btnCal.textContent = '✅ Wykalibrowano!';
+                btnCal.style.color = '#00ff88';
+                setTimeout(() => {
+                    btnCal.textContent = '🎯 Kalibruj środek';
+                    btnCal.style.color = '';
+                }, 1400);
+            }
+
+            if (isGameRunning) {
+                const scaleHit = fov / playerZ;
+                const hitX = (canvas.width / 2);
+                const hitY = 160 + (Hcam + getRoadWaveY(playerZ)) * scaleHit - 40;
+                addFloatingText(hitX, hitY, '🎯 WYKALIBROWANO ŚRODEK (0°)!', 'var(--accent-cyan)');
+            }
+        }
+
+        function onSteeringModeChange(mode) {
+            trikiSteeringMode = mode;
+            try { localStorage.setItem('beatsurfer_triki_mode', mode); } catch(e){}
+            tabletopAngle = 0;
+            rollAngle = 0;
+            updateControlUI();
+        }
+
+        function onSensChange(val) {
+            steeringSens = parseFloat(val);
+            const valEl = document.getElementById('sensVal');
+            if (valEl) valEl.textContent = val + 'x';
+            try { localStorage.setItem('beatsurfer_steering_sens', val); } catch(e){}
+        }
+
+        function toggleTrikiInvert() {
+            trikiInvert = !trikiInvert;
+            try { localStorage.setItem('beatsurfer_triki_invert', trikiInvert ? 'true' : 'false'); } catch(e){}
+            updateControlUI();
+        }
+
+        function updateControlUI() {
+            const btn = document.getElementById('btnInvert');
+            if (btn) {
+                btn.textContent = trikiInvert ? '🔄 Zwrot: Odwrócony' : '🔄 Zwrot: Normalny';
+                btn.style.color = trikiInvert ? 'var(--accent-pink)' : 'var(--accent-cyan)';
+            }
+            const modeSelect = document.getElementById('trikiModeSelect');
+            if (modeSelect) modeSelect.value = trikiSteeringMode;
+            const modeHint = document.getElementById('modeHint');
+            if (modeHint) {
+                if (trikiSteeringMode === 'tilt') {
+                    modeHint.innerHTML = '💡 Trzymaj kapsel <strong>poziomo</strong> tak, aby <strong>kropka nad «z» w napisie «ż» była pod lewym palcem</strong>. Kliknij <strong>«🎯 Kalibruj środek»</strong>. Przechylenie w lewo skręca w lewo, w prawo w prawo!';
+                } else {
+                    modeHint.innerHTML = '💡 Kapsel leży <strong>płasko na blacie biurka</strong>. Obracaj nim w lewo i w prawo jak gałką lub kierownicą.';
+                }
+            }
+            const sensInput = document.getElementById('sensRange');
+            if (sensInput) sensInput.value = steeringSens;
+            const sensText = document.getElementById('sensVal');
+            if (sensText) sensText.textContent = steeringSens + 'x';
+        }
+
+        const bleStatus = document.getElementById('bleStatus');
+        const btnConnect = document.getElementById('btnConnect');
+        const btnDisconnect = document.getElementById('btnDisconnect');
+        const sensorRoll = document.getElementById('sensorRoll');
+        const sensorBtn = document.getElementById('sensorBtn');
+        const sensorG = document.getElementById('sensorG');
+        const sensorLed = document.getElementById('sensorLed');
+        const bpmDisplay = document.getElementById('bpmDisplay');
+
+        async function connectTriki() {
+            if (!navigator.bluetooth) {
+                alert('Web Bluetooth API nie jest obsługiwane w tej przeglądarce. Użyj Chrome lub Edge.');
+                return;
+            }
+
+            try {
+                bleStatus.textContent = 'Łączenie...';
+                bleStatus.style.color = 'var(--accent-gold)';
+                btnConnect.disabled = true;
+
+                trikiDevice = await navigator.bluetooth.requestDevice({
+                    filters: [
+                        { namePrefix: 'Triki' },
+                        { services: [NUS_SERVICE_UUID] }
+                    ],
+                    optionalServices: [NUS_SERVICE_UUID]
+                });
+
+                trikiDevice.addEventListener('gattserverdisconnected', onTrikiDisconnected);
+                const server = await trikiDevice.gatt.connect();
+                const service = await server.getPrimaryService(NUS_SERVICE_UUID);
+
+                trikiTxChar = await service.getCharacteristic(NUS_TX_CHAR_UUID);
+                trikiRxChar = await service.getCharacteristic(NUS_RX_CHAR_UUID);
+                try {
+                    trikiLedChar = await service.getCharacteristic(NUS_LED_CHAR_UUID);
+                } catch (e) {}
+
+                await trikiTxChar.startNotifications();
+                trikiTxChar.addEventListener('characteristicvaluechanged', handleTrikiNotification);
+
+                // Start IMU stream
+                const startCmd = new Uint8Array([0x20, 0x10, 0x00, 0xD0, 0x07, 0x68, 0x00, 0x03]);
+                await trikiRxChar.writeValue(startCmd);
+
+                trikiConnected = true;
+                bleStatus.textContent = 'Połączono';
+                bleStatus.style.color = '#00d672';
+                btnConnect.disabled = true;
+                btnDisconnect.disabled = false;
+                filterInit = false;
+            } catch (err) {
+                console.error('BLE error:', err);
+                trikiConnected = false;
+                bleStatus.textContent = 'Błąd';
+                bleStatus.style.color = 'var(--accent-pink)';
+                btnConnect.disabled = false;
+                btnDisconnect.disabled = true;
+            }
+        }
+
+        function disconnectTriki() {
+            if (trikiTxChar) {
+                trikiTxChar.stopNotifications().catch(() => {});
+                trikiTxChar = null;
+            }
+            if (trikiDevice && trikiDevice.gatt.connected) {
+                trikiDevice.gatt.disconnect();
+            }
+            onTrikiDisconnected();
+        }
+
+        function onTrikiDisconnected() {
+            trikiDevice = null;
+            trikiTxChar = null;
+            trikiRxChar = null;
+            trikiLedChar = null;
+            trikiConnected = false;
+            bleStatus.textContent = 'Rozłączony';
+            bleStatus.style.color = 'var(--accent-pink)';
+            btnConnect.disabled = false;
+            btnDisconnect.disabled = true;
+            sensorRoll.textContent = '0.0°';
+            sensorBtn.textContent = 'Puszczony';
+            sensorG.textContent = '1.00 G';
+            sensorLed.textContent = 'Wyłączona';
+        }
+
+        async function setTrikiLed(on) {
+            if (!trikiLedChar) return;
+            try {
+                await trikiLedChar.writeValueWithResponse(new Uint8Array([on ? 0x01 : 0x00]));
+                sensorLed.textContent = on ? 'ŚWIECI' : 'Wyłączona';
+            } catch (e) {}
+        }
+
+        function handleTrikiNotification(event) {
+            const val = event.target.value;
+            const bytes = new Uint8Array(val.buffer);
+
+            const combined = new Uint8Array(trikiBuffer.length + bytes.length);
+            combined.set(trikiBuffer);
+            combined.set(bytes, trikiBuffer.length);
+            trikiBuffer = combined;
+
+            while (trikiBuffer.length >= 14) {
+                let frameStart = -1;
+                for (let i = 0; i <= trikiBuffer.length - 2; i++) {
+                    if (trikiBuffer[i] === 0x22 && (trikiBuffer[i + 1] === 0x00 || trikiBuffer[i + 1] === 0x01)) {
+                        frameStart = i;
+                        break;
+                    }
+                }
+
+                if (frameStart === -1) {
+                    trikiBuffer = trikiBuffer.length > 0 && trikiBuffer[trikiBuffer.length - 1] === 0x22
+                        ? new Uint8Array([0x22]) : new Uint8Array(0);
+                    break;
+                }
+
+                if (frameStart > 0) trikiBuffer = trikiBuffer.slice(frameStart);
+                if (trikiBuffer.length < 14) break;
+
+                const frame = trikiBuffer.slice(0, 14);
+                trikiBuffer = trikiBuffer.slice(14);
+                parseTrikiFrame(frame);
+            }
+        }
+
+        function parseTrikiFrame(frame) {
+            const isBtn = (frame[1] & 0x01) !== 0;
+            const view = new DataView(frame.buffer, frame.byteOffset, frame.byteLength);
+
+            const gx = view.getInt16(2, true) / GYRO_SCALE;
+            const gy = view.getInt16(4, true) / GYRO_SCALE;
+            const gz = view.getInt16(6, true) / GYRO_SCALE;
+            const ax = view.getInt16(8, true) / ACCEL_SCALE;
+            const ay = view.getInt16(10, true) / ACCEL_SCALE;
+            const az = view.getInt16(12, true) / ACCEL_SCALE;
+
+            const now = performance.now() / 1000;
+            let dt = now - lastSampleTime;
+            if (lastSampleTime === 0 || dt <= 0.001 || dt > 0.1) dt = 0.01;
+            lastSampleTime = now;
+
+            const accelMag = Math.hypot(ax, ay, az);
+            sensorG.textContent = `${accelMag.toFixed(2)} G (Y:${ay.toFixed(2)} Z:${az.toFixed(2)})`;
+
+            // Obliczenie surowego kąta przechyłu (Roll):
+            // Kapsel trzymany poziomo w dłoni, kropka nad «z» w napisie «ż» pod lewym palcem.
+            // Oś Y odpowiada za przechył na boki (Roll), grawitacja skierowana w dół (-Z ~ 1.0G).
+            const horizZ = Math.hypot(ax, -az);
+            rawRollAngle = Math.atan2(ay, Math.max(0.15, horizZ)) * (180 / Math.PI);
+
+            // AIRBORNE TILT (W dłoni):
+            // Kapsel trzymany poziomo w powietrzu, kropka nad «z» w napisie «ż» pod lewym palcem.
+            // Przechylenie w lewo -> LEWY (-), przechylenie w prawo -> PRAWY (+)
+            const airSign = trikiInvert ? 1 : -1;
+            const calibratedRoll = airSign * (rawRollAngle - airZeroOffset);
+
+            // Stabilny filtr wygładzający wektora grawitacji (brak całkowania żyroskopu = ZERO dryfu w trakcie gry!):
+            if (!filterInit) {
+                rollAngle = calibratedRoll;
+                filterInit = true;
+            } else {
+                rollAngle = rollAngle * 0.82 + calibratedRoll * 0.18;
+            }
+            rollAngle = Math.max(-45, Math.min(45, rollAngle));
+
+            // TABLETOP: Kapsel na biurku (żyroskop Z na blacie)
+            if (trikiSteeringMode === 'tabletop') {
+                const tableSign = trikiInvert ? 1 : -1;
+                tabletopAngle += tableSign * gz * dt * (steeringSens * 1.6);
+                tabletopAngle = Math.max(-35, Math.min(35, tabletopAngle));
+                let dirTxt = '⏹️ ŚRODEK';
+                if (tabletopAngle < -4) dirTxt = '⬅️ LEWY';
+                else if (tabletopAngle > 4) dirTxt = '➡️ PRAWY';
+                sensorRoll.textContent = `${tabletopAngle.toFixed(1)}° ${dirTxt}`;
+            } else {
+                let dirTxt = '⏹️ ŚRODEK';
+                if (rollAngle < -4.0) dirTxt = '⬅️ LEWY';
+                else if (rollAngle > 4.0) dirTxt = '➡️ PRAWY';
+                sensorRoll.textContent = `${rollAngle.toFixed(1)}° ${dirTxt}`;
+            }
+
+            // Button click -> STAR POWER! (Nie tapnięciem!)
+            if (isBtn !== buttonState) {
+                buttonState = isBtn;
+                sensorBtn.textContent = buttonState ? 'WCIŚNIĘTY' : 'Puszczony';
+                if (buttonState) {
+                    if (!isGameRunning) {
+                        startGame();
+                    } else {
+                        activateStarPower();
+                    }
+                }
+            }
+        }
+
+        // =====================================================================
+        // BEATSURFER 3D ENGINE (CANVAS 2D PERSPECTIVE)
+        // =====================================================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startOverlay = document.getElementById('startOverlay');
+        const scoreVal = document.getElementById('scoreVal');
+        const multiplierVal = document.getElementById('multiplierVal');
+
+        let isGameRunning = false;
+        let songStartTime = 0;
+        let score = 0;
+        let multiplier = 1;
+        let comboStreak = 0;
+        let maxComboStreak = 0;
+        let notesHit = 0;
+        let starPowerMeter = 0;       // 0 - 100%
+        let isStarPowerActive = false;
+        let starPowerTimeLeft = 0;
+        let starPowerActivations = 0;
+        let isSlashingAnimation = 0;
+
+        // Player Hover Ship / Blade Craft
+        const player = {
+            lane: 1,           // 0 = Left, 1 = Center, 2 = Right
+            targetX: 0,
+            x: 0,
+            tilt: 0
+        };
+
+        // Highway Tracks - 3 Lanes perfectly proportioned inside road
+        let trackZ = 0;
+        const roadHalfWidthBase = 100;
+        const LANES_X = [-66.67, 0, 66.67]; // Left (-2/3), Center (0), Right (+2/3)
+        const playerZ = 160;               // Strike zone depth
+        const Hcam = 145;                  // Camera height above highway
+        const fov = 280;                   // Perspective projection focal length
+        const HIGHWAY_SPEED = 660;         // Note progression speed in 3D units / sec
+
+        let particles = [];
+        let slicedHalves = [];             // 3D Cut cube pieces flying apart
+        let floatingTexts = [];
+        let stars = [];
+
+        function initStarfield() {
+            stars = [];
+            const starColors = ['#ffffff', '#00f0ff', '#ffe885', '#ff77c6'];
+            for (let i = 0; i < 90; i++) {
+                const isCross = (i % 3 === 0);
+                stars.push({
+                    x: (Math.random() - 0.5) * canvas.width * 2.4,
+                    y: (Math.random() - 0.5) * canvas.height * 2.0,
+                    z: Math.random() * 980 + 20,
+                    size: Math.random() * 2.2 + (isCross ? 2.0 : 1.2),
+                    isCross: isCross,
+                    color: starColors[Math.floor(Math.random() * starColors.length)],
+                    twinklePhase: Math.random() * Math.PI * 2,
+                    twinkleSpeed: Math.random() * 3 + 1.5
+                });
+            }
+        }
+
+        // 5-ramienna klasyczna gwiazda (Star Power note ⭐)
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius, fillStyle, strokeStyle) {
+            let rot = (Math.PI / 2) * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            if (fillStyle) {
+                ctx.fillStyle = fillStyle;
+                ctx.fill();
+            }
+            if (strokeStyle) {
+                ctx.strokeStyle = strokeStyle;
+                ctx.lineWidth = Math.max(1.2, outerRadius * 0.14);
+                ctx.stroke();
+            }
+        }
+
+        function getRoadBendX(z) {
+            return Math.sin((trackZ + z) * 0.001) * 12;
+        }
+
+        function getRoadWaveY(z) {
+            const bassDrop = bassEnergy * 14 * Math.sin((trackZ + z) * 0.0035);
+            const rhythmWave = Math.sin((trackZ + z) * 0.0018) * 10;
+            return rhythmWave + bassDrop;
+        }
+
+        // Combo & Multiplier logic
+        function getBaseMultiplier() {
+            if (comboStreak >= 30) return 4;
+            if (comboStreak >= 20) return 3;
+            if (comboStreak >= 10) return 2;
+            return 1;
+        }
+
+        function updateMultiplierUI() {
+            const baseMult = getBaseMultiplier();
+            multiplier = isStarPowerActive ? (baseMult * 2) : baseMult;
+
+            multiplierVal.textContent = `x${multiplier}`;
+            multiplierVal.className = isStarPowerActive ? 'gold star-active-mult' : (multiplier > 1 ? 'pink' : 'cyan');
+
+            const streakEl = document.getElementById('streakVal');
+            if (streakEl) {
+                streakEl.textContent = `(Seria: ${comboStreak})`;
+                if (comboStreak > 0 && comboStreak % 10 === 0) {
+                    streakEl.classList.add('streak-pulse');
+                    setTimeout(() => streakEl.classList.remove('streak-pulse'), 300);
+                }
+            }
+        }
+
+        function updateStarPowerUI() {
+            const fillEl = document.getElementById('starPowerFill');
+            const textEl = document.getElementById('starPowerText');
+            const touchBtn = document.getElementById('btnTouchStarPower');
+
+            const pct = Math.max(0, Math.min(100, Math.round(starPowerMeter)));
+            if (fillEl) {
+                fillEl.style.width = `${pct}%`;
+                if (isStarPowerActive) {
+                    fillEl.classList.add('active');
+                } else {
+                    fillEl.classList.remove('active');
+                }
+            }
+            if (textEl) {
+                textEl.textContent = isStarPowerActive ? `🔥 ${pct}%` : `${pct}%`;
+            }
+            if (touchBtn) {
+                if (isStarPowerActive) {
+                    touchBtn.style.borderColor = '#ffd700';
+                    touchBtn.style.boxShadow = '0 0 15px #ffd700';
+                    touchBtn.textContent = '⭐ AKTYWNY!';
+                } else if (starPowerMeter >= 50) {
+                    touchBtn.style.borderColor = '#00ffff';
+                    touchBtn.style.boxShadow = '0 0 10px #00ffff';
+                    touchBtn.textContent = '⭐ STAR POWER (GOTOWY)';
+                } else {
+                    touchBtn.style.borderColor = 'rgba(255,215,0,0.3)';
+                    touchBtn.style.boxShadow = 'none';
+                    touchBtn.textContent = '⭐ STAR POWER';
+                }
+            }
+        }
+
+        function activateStarPower() {
+            if (!isGameRunning) return;
+            if (isStarPowerActive) return; // Już trwa
+            if (starPowerMeter < 50) {
+                // Poniżej 50% - nie można aktywować
+                const scaleHit = fov / playerZ;
+                const hitX = (canvas.width / 2) + (player.x + getRoadBendX(playerZ)) * scaleHit;
+                const hitY = 160 + (Hcam + getRoadWaveY(playerZ)) * scaleHit - 30;
+                addFloatingText(hitX, hitY, '⭐ MINIMUM 50% STAR POWER!', '#ffd700');
+                return;
+            }
+
+            isStarPowerActive = true;
+            starPowerActivations++;
+            starPowerTimeLeft = (starPowerMeter / 100) * 12.0; // do 12 sekund na pełnym pasku
+            playStarPowerSound();
+            setTrikiLed(true);
+
+            updateMultiplierUI();
+            updateStarPowerUI();
+
+            const scaleHit = fov / playerZ;
+            const hitX = (canvas.width / 2) + (player.x + getRoadBendX(playerZ)) * scaleHit;
+            const hitY = 160 + (Hcam + getRoadWaveY(playerZ)) * scaleHit - 40;
+            addFloatingText(hitX, hitY - 20, '⚡ STAR POWER! MNOŻNIK x2', '#ffd700');
+            createSparks(hitX, hitY, '#ffd700', 35);
+        }
+
+        async function startGame() {
+            initAudioEngine();
+            if (audioCtx.state === 'suspended') {
+                try { await audioCtx.resume(); } catch (e) {}
+            }
+
+            // 1. Defensywnie zatrzymaj poprzedni dźwięk
+            if (audioSource) {
+                audioSource.onended = null;
+                try { audioSource.stop(); } catch(e) {}
+                audioSource = null;
+            }
+            isAudioPlaying = false;
+
+            if (!audioBuffer) {
+                audioBuffer = generateProceduralTrack('cyber');
+            }
+
+            // Zapewnij deterministyczną trasę dla aktualnego utworu
+            prepareChartForCurrentTrack();
+
+            // Zresetuj stan nut w trasie
+            if (activeChart && activeChart.length > 0) {
+                for (let i = 0; i < activeChart.length; i++) {
+                    activeChart[i].hit = false;
+                    activeChart[i].missed = false;
+                    activeChart[i].z = 0;
+                }
+            }
+
+            // 2. Podłącz nowy Audio Source
+            const currentSource = audioCtx.createBufferSource();
+            currentSource.buffer = audioBuffer;
+            currentSource.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            currentSource.onended = () => {
+                if (isGameRunning && audioSource === currentSource) {
+                    endGame('completed');
+                }
+            };
+
+            // 3. Reset stanu gry
+            score = 0;
+            multiplier = 1;
+            comboStreak = 0;
+            maxComboStreak = 0;
+            notesHit = 0;
+            starPowerMeter = 0;
+            isStarPowerActive = false;
+            starPowerTimeLeft = 0;
+            starPowerActivations = 0;
+            setTrikiLed(false);
+
+            trackZ = 0;
+            isSlashingAnimation = 0;
+
+            player.x = 0;
+            player.targetX = 0;
+            player.lane = 1;
+            player.tilt = 0;
+            tabletopAngle = 0;
+            rollAngle = 0;
+
+            particles = [];
+            slicedHalves = [];
+            floatingTexts = [];
+            initStarfield();
+
+            scoreVal.textContent = '0';
+            updateMultiplierUI();
+            updateStarPowerUI();
+
+            currentHighScore = loadHighScore();
+            const hsEl = document.getElementById('highScoreVal');
+            if (hsEl) {
+                hsEl.textContent = currentHighScore;
+                hsEl.classList.remove('new-record');
+            }
+
+            // 4. Schowaj ekrany i uruchom muzykę
+            document.getElementById('startOverlay').style.display = 'none';
+            document.getElementById('endOverlay').style.display = 'none';
+
+            songStartTime = audioCtx.currentTime;
+            audioSource = currentSource;
+            audioSource.start(0);
+            isAudioPlaying = true;
+
+            lastTime = performance.now();
+            isGameRunning = true;
+        }
+
+        function endGame(reason = 'completed') {
+            isGameRunning = false;
+            setTrikiLed(false);
+
+            if (audioSource) {
+                audioSource.onended = null;
+                try { audioSource.stop(); } catch(e) {}
+                audioSource = null;
+            }
+            isAudioPlaying = false;
+
+            document.getElementById('startOverlay').style.display = 'none';
+            const endOverlay = document.getElementById('endOverlay');
+
+            const totalNotes = totalTrackNotes || (activeChart ? activeChart.length : 1);
+            const accPct = totalNotes > 0 ? Math.round((notesHit / totalNotes) * 100) : 0;
+            const isFC = (notesHit === totalNotes) && (totalNotes > 0);
+
+            const isNewRecord = saveHighScore(score, maxComboStreak, accPct);
+
+            document.getElementById('endTitle').textContent = isFC ? '⭐ PERFEKCYJNE FULL COMBO! ⭐' : '🏁 TRASA UKOŃCZONA!';
+            document.getElementById('endScore').textContent = score;
+            document.getElementById('endHighScore').textContent = loadHighScore();
+            document.getElementById('endCombo').textContent = maxComboStreak;
+            document.getElementById('endAccuracy').textContent = `${notesHit} / ${totalNotes} (${accPct}%)`;
+            document.getElementById('endStarPower').textContent = `${starPowerActivations}x`;
+            document.getElementById('endFC').textContent = isFC ? 'TAK! 👑' : 'NIE';
+
+            const newRecordBadge = document.getElementById('endNewRecordBadge');
+            if (newRecordBadge) {
+                newRecordBadge.style.display = isNewRecord ? 'inline-block' : 'none';
+            }
+
+            const rankEl = document.getElementById('endRank');
+            if (isFC) {
+                rankEl.textContent = '🏆 RANGA: FULL COMBO (MISTRZ SSS)';
+                rankEl.style.color = '#ffd700';
+            } else if (accPct >= 85) {
+                rankEl.textContent = '🥇 RANGA: S';
+                rankEl.style.color = '#00f0ff';
+            } else if (accPct >= 70) {
+                rankEl.textContent = '🥈 RANGA: A';
+                rankEl.style.color = '#00d672';
+            } else if (accPct >= 50) {
+                rankEl.textContent = '🥉 RANGA: B';
+                rankEl.style.color = '#ff9900';
+            } else {
+                rankEl.textContent = '🏅 RANGA: C';
+                rankEl.style.color = '#8fa0b8';
+            }
+
+            endOverlay.style.display = 'flex';
+        }
+
+        function openStartMenu() {
+            isGameRunning = false;
+            setTrikiLed(false);
+            if (audioSource) {
+                audioSource.onended = null;
+                try { audioSource.stop(); } catch(e) {}
+                audioSource = null;
+            }
+            isAudioPlaying = false;
+            document.getElementById('endOverlay').style.display = 'none';
+            document.getElementById('startOverlay').style.display = 'flex';
+        }
+
+        function addFloatingText(x, y, text, color) {
+            floatingTexts.push({
+                x: x,
+                y: y,
+                text: text,
+                color: color,
+                alpha: 1.0,
+                vy: -55
+            });
+        }
+
+        // =====================================================================
+        // CORE SLICING & NOTE HIT / MISS LOGIC
+        // =====================================================================
+        function triggerCyberSlash() {
+            if (!isGameRunning) return;
+            isSlashingAnimation = 0.22;
+            playCyberSlashSound();
+            setTrikiLed(true);
+            setTimeout(() => {
+                if (!isStarPowerActive) setTrikiLed(false);
+            }, 90);
+            const scaleHit = fov / playerZ;
+            const hitX = (canvas.width / 2) + (player.x + getRoadBendX(playerZ)) * scaleHit;
+            const hitY = 160 + (Hcam + getRoadWaveY(playerZ)) * scaleHit - 14;
+            createSparks(hitX, hitY, '#00f0ff', 10);
+        }
+
+        function handleNoteHit(note) {
+            if (note.hit || note.missed) return;
+            note.hit = true;
+            notesHit++;
+            comboStreak++;
+            if (comboStreak > maxComboStreak) maxComboStreak = comboStreak;
+
+            const basePts = 200;
+            const pts = basePts * multiplier;
+            score += pts;
+            scoreVal.textContent = score;
+
+            if (score > currentHighScore) {
+                const hsEl = document.getElementById('highScoreVal');
+                if (hsEl) {
+                    hsEl.textContent = score;
+                    hsEl.classList.add('new-record');
+                }
+            }
+
+            // Ładowanie Star Power: Zbieranie gwiazdek dodaje +10% (również podczas aktywnego Star Power!)
+            if (note.isStar) {
+                if (isStarPowerActive) {
+                    // Przedłużenie aktywnego Star Power o +10% (do maks 100% / 12s)
+                    starPowerTimeLeft = Math.min(12.0, starPowerTimeLeft + (10 / 100) * 12.0); // +1.2 sekundy
+                    starPowerMeter = Math.min(100, (starPowerTimeLeft / 12.0) * 100);
+                } else {
+                    // Normalne ładowanie paska o +10%
+                    starPowerMeter = Math.min(100, starPowerMeter + 10);
+                }
+            }
+
+            updateMultiplierUI();
+            updateStarPowerUI();
+
+            createSlicedCube(note);
+
+            const scaleHit = fov / playerZ;
+            const hitX = (canvas.width / 2) + (LANES_X[note.lane] + getRoadBendX(playerZ)) * scaleHit;
+            const hitY = 160 + (Hcam + getRoadWaveY(playerZ)) * scaleHit - 14;
+
+            const hitMsg = note.isStar ? (isStarPowerActive ? `⭐ STAR POWER +10%! (+1.2s)` : `⭐ STAR POWER +10%!`) : `+${pts}`;
+            const hitColor = note.isStar ? note.color : (isStarPowerActive ? '#ffd700' : note.color);
+            addFloatingText(hitX, hitY - 30, hitMsg, hitColor);
+            createSparks(hitX, hitY, note.color, note.isStar ? 24 : 18);
+        }
+
+        function handleNoteMiss(note) {
+            if (note.hit || note.missed) return;
+            note.missed = true;
+
+            const hadStreak = comboStreak > 0;
+            const hadCombo = comboStreak >= 5;
+            comboStreak = 0;
+            updateMultiplierUI();
+
+            if (hadStreak) {
+                playMissSound();
+            }
+
+            const scaleHit = fov / playerZ;
+            const hitX = (canvas.width / 2) + (LANES_X[note.lane] + getRoadBendX(playerZ)) * scaleHit;
+            const hitY = 160 + (Hcam + getRoadWaveY(playerZ)) * scaleHit - 14;
+
+            addFloatingText(hitX, hitY - 25, hadCombo ? '💥 COMBO RESET! MISS' : 'MISS', '#ff3b30');
+            createSparks(hitX, hitY, '#ff3b30', 8);
+        }
+
+        // Split Cube into Left and Right Cut Halves
+        function createSlicedCube(cube) {
+            const laneX = LANES_X[cube.lane];
+            slicedHalves.push({
+                laneX: laneX - 12,
+                z: cube.z,
+                color: cube.color,
+                vx: -8,
+                vy: -3,
+                rot: -0.15,
+                angle: 0,
+                alpha: 1.0,
+                isLeft: true
+            });
+            slicedHalves.push({
+                laneX: laneX + 12,
+                z: cube.z,
+                color: cube.color,
+                vx: 8,
+                vy: -3,
+                rot: 0.15,
+                angle: 0,
+                alpha: 1.0,
+                isLeft: false
+            });
+        }
+
+        function createSparks(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = Math.random() * 7 + 3;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd,
+                    color: color,
+                    alpha: 1.0,
+                    size: Math.random() * 4 + 2
+                });
+            }
+        }
+
+        // =====================================================================
+        // AUDIO FFT ANALYSIS (VISUALS & PULSES ONLY)
+        // =====================================================================
+        function updateAudioAnalysis(dt) {
+            if (!analyser) return;
+            analyser.getByteFrequencyData(freqData);
+
+            // Spectrum columns
+            for (let i = 0; i < 32; i++) {
+                let sum = 0;
+                for (let j = 0; j < 4; j++) sum += freqData[i * 4 + j] || 0;
+                if (spectrumCols[i]) {
+                    spectrumCols[i].style.height = `${(sum / (4 * 255)) * 100}%`;
+                }
+            }
+
+            // Bass (bins 0-9)
+            let bSum = 0;
+            for (let i = 0; i < 10; i++) bSum += freqData[i];
+            bassEnergy = bSum / (10 * 255);
+
+            // Mids (bins 10-45)
+            let mSum = 0;
+            for (let i = 10; i < 46; i++) mSum += freqData[i];
+            midEnergy = mSum / (36 * 255);
+
+            // Treble (bins 46-120)
+            let tSum = 0;
+            for (let i = 46; i < 120; i++) tSum += freqData[i];
+            trebleEnergy = tSum / (74 * 255);
+
+            bpmDisplay.textContent = `Bass Pulse: ${(bassEnergy * 100).toFixed(0)}%`;
+        }
+
+        // =====================================================================
+        // UPDATE PHYSICS & GAMEPLAY (DETERMINISTIC AUDIO HIGHWAY)
+        // =====================================================================
+        function updateGame(dt) {
+            if (isSlashingAnimation > 0) isSlashingAnimation -= dt;
+
+            // Audio Beat Analysis for Visuals
+            updateAudioAnalysis(dt);
+
+            // Analog Steering (Tabletop Z-Gyro, Air Gyro Wheel, or Handheld Roll)
+            if (trikiConnected) {
+                if (trikiSteeringMode === 'tabletop') {
+                    // Tryb stołowy: Dioda do góry, obrót po blacie na żyroskopie Z
+                    // Tryb stołowy (Domyślny): Dioda do góry, obrót po blacie na żyroskopie Z
+                    const maxTableAngle = Math.max(14, 28 - (steeringSens - 2.5) * 1.5);
+                    player.targetX = (tabletopAngle / maxTableAngle) * LANES_X[2];
+                } else {
+                    // Tryb przechyłu w dłoni (Roll):
+                    // Martwa strefa ±4.0° zapewnia stabilny środek bez przypadkowego uciekania na boki!
+                    let effRoll = rollAngle;
+                    const deadband = 4.0;
+                    if (Math.abs(effRoll) < deadband) {
+                        effRoll = 0; // Idealny, stabilny środek
+                    } else if (effRoll > 0) {
+                        effRoll -= deadband;
+                    } else {
+                        effRoll += deadband;
+                    }
+
+                    const maxAirRoll = Math.max(14, 32 / (steeringSens / 3.0));
+                    const ratio = Math.max(-1, Math.min(1, effRoll / maxAirRoll));
+                    // Płynna progresywna krzywa dla naturalnego wejścia w tor
+                    player.targetX = Math.sign(ratio) * Math.pow(Math.abs(ratio), 1.15) * LANES_X[2];
+                }
+
+                player.targetX = Math.max(LANES_X[0], Math.min(LANES_X[2], player.targetX));
+                if (player.x < -22) player.lane = 0;
+                else if (player.x > 22) player.lane = 2;
+                else player.lane = 1;
+            } else {
+                if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                    player.targetX = LANES_X[0];
+                    player.lane = 0;
+                } else if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                    player.targetX = LANES_X[2];
+                    player.lane = 2;
+                } else if (keys['ArrowDown'] || keys['s'] || keys['S'] || keys['ArrowUp'] || keys['w'] || keys['W']) {
+                    player.targetX = LANES_X[1];
+                    player.lane = 1;
+                }
+            }
+
+            // Smooth lateral motion
+            player.x += (player.targetX - player.x) * 15 * dt;
+
+            // Dynamic 3D Bank / Lean into turns (Wyraźny, aerodynamiczny przechył statku przy skręcie)
+            let targetTilt = 0;
+            if (trikiConnected) {
+                if (trikiSteeringMode === 'tabletop') {
+                    targetTilt = (tabletopAngle * 0.65) + (player.targetX - player.x) * 0.50;
+                } else {
+                    targetTilt = (rollAngle * 0.65) + (player.targetX - player.x) * 0.50;
+                }
+            } else {
+                targetTilt = (player.targetX - player.x) * 0.70;
+            }
+            targetTilt += getRoadBendX(playerZ) * -0.22;
+            targetTilt = Math.max(-28, Math.min(28, targetTilt));
+            player.tilt += (targetTilt - player.tilt) * 14 * dt;
+
+            // Star Power Duration Countdown
+            if (isStarPowerActive) {
+                starPowerTimeLeft -= dt;
+                starPowerMeter = Math.max(0, (starPowerTimeLeft / 12.0) * 100);
+                if (starPowerTimeLeft <= 0 || starPowerMeter <= 0) {
+                    isStarPowerActive = false;
+                    starPowerMeter = 0;
+                    starPowerTimeLeft = 0;
+                    setTrikiLed(false);
+                    updateMultiplierUI();
+                }
+                updateStarPowerUI();
+            }
+
+            // Constant Highway Progress in sync with Audio
+            trackZ += HIGHWAY_SPEED * dt;
+
+            // Update Starfield
+            stars.forEach(s => {
+                s.z -= (HIGHWAY_SPEED * 0.6) * dt;
+                if (s.z <= 10) s.z = 1000;
+            });
+
+            // Synchronize and Evaluate Active Chart Notes with Audio Time
+            const songCurrentTime = audioCtx.currentTime - songStartTime;
+
+            if (activeChart && activeChart.length > 0) {
+                for (let i = 0; i < activeChart.length; i++) {
+                    const note = activeChart[i];
+                    const dtNote = note.time - songCurrentTime;
+
+                    // 3D Depth calculation relative to player strike zone
+                    note.z = playerZ + dtNote * HIGHWAY_SPEED;
+
+                    // Miss check: nuta minęła gracza bez zebrania
+                    if (dtNote < -0.16 && !note.hit && !note.missed) {
+                        handleNoteMiss(note);
+                    }
+
+                    // Zbieranie nuty na torze: statek wjechał w strefę nuty
+                    if (!note.hit && !note.missed && Math.abs(dtNote) <= 0.14) {
+                        const laneX = LANES_X[note.lane];
+                        if (Math.abs(player.x - laneX) < 34) {
+                            handleNoteHit(note);
+                        }
+                    }
+                }
+            }
+
+            // Check if track has reached the end
+            if (audioBuffer && songCurrentTime >= (audioBuffer.duration - 0.2)) {
+                endGame('completed');
+                return;
+            }
+
+            // Update Sliced Flying Halves
+            for (let i = slicedHalves.length - 1; i >= 0; i--) {
+                const h = slicedHalves[i];
+                h.z -= HIGHWAY_SPEED * 0.85 * dt;
+                h.laneX += h.vx * dt * 18;
+                h.vy += dt * 9;
+                h.angle += h.rot;
+                h.alpha -= dt * 2.5;
+                if (h.alpha <= 0 || h.z < 20) slicedHalves.splice(i, 1);
+            }
+
+            // Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= dt * 2.2;
+                if (p.alpha <= 0) particles.splice(i, 1);
+            }
+
+            // Floating Score Texts
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.y += ft.vy * dt;
+                ft.alpha -= dt * 1.5;
+                if (ft.alpha <= 0) floatingTexts.splice(i, 1);
+            }
+        }
+
+        // =====================================================================
+        // DRAW 3D PERSPECTIVE HIGHWAY & CYBERSLASH ACTION
+        // =====================================================================
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const cx = canvas.width / 2;
+            const cy = 160; // Horizon height
+
+            // 1. Starfield Background (Gleaming 4-Point Stars & Synthwave Sparkles)
+            stars.forEach(s => {
+                s.twinklePhase += (s.twinkleSpeed + trebleEnergy * 2.5) * 0.016;
+                const scale = fov / s.z;
+                const sx = cx + s.x * scale;
+                const sy = cy + s.y * scale;
+                const distFactor = Math.max(0.15, 1 - s.z / 1000);
+                const twinkleAlpha = Math.max(0.15, Math.min(1.0, distFactor * (0.55 + 0.45 * Math.sin(s.twinklePhase))));
+
+                if (sx > 0 && sx < canvas.width && sy > 0 && sy < cy + 85) {
+                    const r = Math.max(1.2, s.size * scale * 2.2);
+
+                    if (s.isCross && r >= 2.0) {
+                        // 4-Point Sparkle Cross Star (Prawdziwa błyszcząca gwiazda!)
+                        ctx.save();
+                        ctx.globalAlpha = twinkleAlpha;
+                        
+                        // Halo glow
+                        ctx.shadowColor = s.color;
+                        ctx.shadowBlur = r * 3;
+
+                        // Cross rays
+                        ctx.strokeStyle = s.color;
+                        ctx.lineWidth = Math.max(1, r * 0.35);
+                        ctx.beginPath();
+                        ctx.moveTo(sx - r * 2.8, sy);
+                        ctx.lineTo(sx + r * 2.8, sy);
+                        ctx.moveTo(sx, sy - r * 2.8);
+                        ctx.lineTo(sx, sy + r * 2.8);
+                        ctx.stroke();
+
+                        // Diamentowe jądro gwiazdy
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.moveTo(sx, sy - r * 1.3);
+                        ctx.lineTo(sx + r * 0.4, sy);
+                        ctx.lineTo(sx, sy + r * 1.3);
+                        ctx.lineTo(sx - r * 0.4, sy);
+                        ctx.closePath();
+                        ctx.fill();
+
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, r * 0.35, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.restore();
+                    } else {
+                        // Diamond shimmer distant star
+                        ctx.save();
+                        ctx.globalAlpha = twinkleAlpha;
+                        ctx.fillStyle = s.color;
+                        ctx.shadowColor = s.color;
+                        ctx.shadowBlur = r * 2;
+                        ctx.beginPath();
+                        ctx.moveTo(sx, sy - r);
+                        ctx.lineTo(sx + r * 0.6, sy);
+                        ctx.lineTo(sx, sy + r);
+                        ctx.lineTo(sx - r * 0.6, sy);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+            });
+
+            // 2. Cyber Horizon Beat Crest (Nowoczesny, dopracowany półokrąg reagujący na bit)
+            const baseArcRadius = 52 + bassEnergy * 16;
+            const arcScale = fov / 900;
+            const arcX = cx + getRoadBendX(900) * arcScale;
+            const arcY = cy + (Hcam + getRoadWaveY(900)) * arcScale - 8;
+
+            ctx.save();
+
+            // A. Miękka poświata atmosferyczna (Ambient Horizon Glow)
+            const glowRadius = baseArcRadius * 1.5;
+            const ambientGrad = ctx.createRadialGradient(arcX, arcY, baseArcRadius * 0.2, arcX, arcY, glowRadius);
+            if (isStarPowerActive) {
+                ambientGrad.addColorStop(0, 'rgba(255, 215, 0, 0.40)');
+                ambientGrad.addColorStop(0.6, 'rgba(255, 140, 0, 0.15)');
+                ambientGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            } else {
+                ambientGrad.addColorStop(0, `rgba(255, 0, 127, ${0.28 + bassEnergy * 0.25})`);
+                ambientGrad.addColorStop(0.5, `rgba(0, 240, 255, ${0.15 + bassEnergy * 0.15})`);
+                ambientGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            }
+            ctx.fillStyle = ambientGrad;
+            ctx.beginPath();
+            ctx.arc(arcX, arcY, glowRadius, Math.PI, 0);
+            ctx.fill();
+
+            // B. Główna bryła półokręgu (Gładki, głęboki gradient z rozświetlonym szczytem)
+            const bodyGrad = ctx.createLinearGradient(arcX, arcY - baseArcRadius, arcX, arcY);
+            if (isStarPowerActive) {
+                bodyGrad.addColorStop(0, '#fffbe6');
+                bodyGrad.addColorStop(0.35, '#ffd700');
+                bodyGrad.addColorStop(0.8, '#ff8800');
+                bodyGrad.addColorStop(1, '#1a0d00');
+            } else {
+                bodyGrad.addColorStop(0, '#ffffff');
+                bodyGrad.addColorStop(0.25, '#00f0ff');
+                bodyGrad.addColorStop(0.65, '#ff007f');
+                bodyGrad.addColorStop(1, '#090d1a');
+            }
+            ctx.fillStyle = bodyGrad;
+            ctx.shadowColor = isStarPowerActive ? '#ffd700' : (bassEnergy > 0.5 ? '#00f0ff' : '#ff007f');
+            ctx.shadowBlur = 18 + bassEnergy * 14;
+            ctx.beginPath();
+            ctx.arc(arcX, arcY, baseArcRadius, Math.PI, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // C. Precyzyjny, neonowy obrys krawędzi (Sleek Luminous Rim)
+            ctx.strokeStyle = isStarPowerActive ? '#ffffff' : (bassEnergy > 0.5 ? '#ffffff' : '#00f0ff');
+            ctx.lineWidth = 1.8;
+            ctx.shadowColor = isStarPowerActive ? '#ffd700' : '#00f0ff';
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(arcX, arcY, baseArcRadius, Math.PI, 0);
+            ctx.stroke();
+
+            // D. Subtelny zewnętrzny pierścień rezonansowy (Holographic Accent Ring)
+            const outerRingR = baseArcRadius + 5 + bassEnergy * 6;
+            ctx.strokeStyle = isStarPowerActive ? 'rgba(255, 215, 0, 0.55)' : `rgba(0, 240, 255, ${0.30 + bassEnergy * 0.40})`;
+            ctx.lineWidth = 1.2;
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(arcX, arcY, outerRingR, Math.PI, 0);
+            ctx.stroke();
+
+            // E. Elegancka, cieniutka linia horyzontu (Horizon Laser Seam)
+            const beamHalfW = baseArcRadius * 2.2;
+            const beamGrad = ctx.createLinearGradient(arcX - beamHalfW, arcY, arcX + beamHalfW, arcY);
+            beamGrad.addColorStop(0, 'rgba(0, 240, 255, 0)');
+            beamGrad.addColorStop(0.35, isStarPowerActive ? 'rgba(255, 215, 0, 0.45)' : 'rgba(0, 240, 255, 0.35)');
+            beamGrad.addColorStop(0.5, '#ffffff');
+            beamGrad.addColorStop(0.65, isStarPowerActive ? 'rgba(255, 215, 0, 0.45)' : 'rgba(255, 0, 127, 0.35)');
+            beamGrad.addColorStop(1, 'rgba(255, 0, 127, 0)');
+            ctx.strokeStyle = beamGrad;
+            ctx.lineWidth = 1.2;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.moveTo(arcX - beamHalfW, arcY);
+            ctx.lineTo(arcX + beamHalfW, arcY);
+            ctx.stroke();
+
+            ctx.restore();
+
+            // 3. 3D Highway Road Surface
+            const stepZ = 20;
+            const maxZ = 850;
+            const minZ = 115;
+
+            for (let z = maxZ; z > minZ; z -= stepZ) {
+                const zNear = Math.max(105, z - stepZ);
+                const zFar = z;
+
+                const scaleNear = fov / zNear;
+                const scaleFar = fov / zFar;
+
+                const cXNear = cx + getRoadBendX(zNear) * scaleNear;
+                const cYNear = cy + (Hcam + getRoadWaveY(zNear)) * scaleNear;
+                const wNear = scaleNear * roadHalfWidthBase;
+
+                const cXFar = cx + getRoadBendX(zFar) * scaleFar;
+                const cYFar = cy + (Hcam + getRoadWaveY(zFar)) * scaleFar;
+                const wFar = scaleFar * roadHalfWidthBase;
+
+                // Dark Asphalt Quad
+                ctx.fillStyle = (Math.floor((z + trackZ) / 80) % 2 === 0) ? '#080c18' : '#050812';
+                ctx.beginPath();
+                ctx.moveTo(cXNear - wNear, cYNear);
+                ctx.lineTo(cXFar - wFar, cYFar);
+                ctx.lineTo(cXFar + wFar, cYFar);
+                ctx.lineTo(cXNear + wNear, cYNear);
+                ctx.closePath();
+                ctx.fill();
+
+                // Neon Edge Borders
+                const edgeColor = isStarPowerActive ? '#ffd700' : (bassEnergy > 0.58 ? '#ffd700' : midEnergy > 0.52 ? '#ff007f' : '#00f0ff');
+                ctx.strokeStyle = edgeColor;
+                ctx.lineWidth = Math.max(1.2, scaleNear * 1.5);
+                ctx.shadowColor = edgeColor;
+                ctx.shadowBlur = isStarPowerActive ? 22 : Math.min(16, scaleNear * (6 + bassEnergy * 6));
+
+                ctx.beginPath();
+                ctx.moveTo(cXNear - wNear, cYNear);
+                ctx.lineTo(cXFar - wFar, cYFar);
+                ctx.moveTo(cXNear + wNear, cYNear);
+                ctx.lineTo(cXFar + wFar, cYFar);
+                ctx.stroke();
+
+                // Lane Dividers
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = isStarPowerActive ? 'rgba(255, 215, 0, 0.45)' : 'rgba(0, 240, 255, 0.28)';
+                ctx.lineWidth = 1;
+                [-0.333, 0.333].forEach(ratio => {
+                    ctx.beginPath();
+                    ctx.moveTo(cXNear + wNear * ratio, cYNear);
+                    ctx.lineTo(cXFar + wFar * ratio, cYFar);
+                    ctx.stroke();
+                });
+
+                // Speed lines
+                if (Math.floor((z + trackZ) / 80) % 2 === 0) {
+                    ctx.strokeStyle = isStarPowerActive ? 'rgba(255, 215, 0, 0.55)' : `rgba(255, 0, 127, ${0.22 + bassEnergy * 0.45})`;
+                    ctx.lineWidth = Math.max(1, scaleNear * 1.6);
+                    ctx.beginPath();
+                    ctx.moveTo(cXNear - wNear * 0.9, cYNear);
+                    ctx.lineTo(cXNear + wNear * 0.9, cYNear);
+                    ctx.stroke();
+                }
+            }
+
+            // 4. Draw Deterministic Rhythm Highway Notes (Neon Rhythm Cubes & Star Notes ⭐)
+            if (activeChart && activeChart.length > 0) {
+                for (let i = 0; i < activeChart.length; i++) {
+                    const note = activeChart[i];
+                    if (note.hit || note.z < 60 || note.z > 920) continue;
+
+                    const laneX = LANES_X[note.lane];
+                    const scale = fov / note.z;
+                    const bend = getRoadBendX(note.z);
+                    const wave = getRoadWaveY(note.z);
+
+                    const screenX = cx + (laneX + bend) * scale;
+                    const screenY = cy + (Hcam + wave) * scale;
+
+                    if (screenY > cy - 20 && screenY < canvas.height + 40) {
+                        const size = Math.max(6, Math.min(42, scale * 22));
+                        ctx.save();
+                        ctx.translate(screenX, screenY - size * 0.5);
+
+                        if (note.isStar) {
+                            // STAR POWER NOTE ⭐ (5-ramienna gwiazda w pastelowym kolorze toru)
+                            const outerR = size * 0.72;
+                            const innerR = size * 0.31;
+                            ctx.shadowColor = note.color;
+                            ctx.shadowBlur = isStarPowerActive ? 26 : 18;
+
+                            // Klasyczna 5-ramienna gwiazda w pastelowym odcieniu
+                            drawStar(ctx, 0, 0, 5, outerR, innerR, note.color, '#ffffff');
+
+                            // Środek - jasne, lśniące białe jądro
+                            ctx.shadowBlur = 8;
+                            drawStar(ctx, 0, 0, 5, outerR * 0.42, innerR * 0.42, '#ffffff', null);
+                        } else {
+                            // Czysty, intensywny neonowy sześcian (bez żadnych znaków/strzałek w środku)
+                            const half = size * 0.5;
+                            const depth = size * 0.35; // 3D isometric bevel depth
+
+                            // 3D Top Bevel Face
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.32)';
+                            ctx.beginPath();
+                            ctx.moveTo(-half, -half);
+                            ctx.lineTo(-half + depth * 0.5, -half - depth * 0.5);
+                            ctx.lineTo(half + depth * 0.5, -half - depth * 0.5);
+                            ctx.lineTo(half, -half);
+                            ctx.closePath();
+                            ctx.fill();
+
+                            // 3D Right Side Bevel Face
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.40)';
+                            ctx.beginPath();
+                            ctx.moveTo(half, -half);
+                            ctx.lineTo(half + depth * 0.5, -half - depth * 0.5);
+                            ctx.lineTo(half + depth * 0.5, half - depth * 0.5);
+                            ctx.lineTo(half, half);
+                            ctx.closePath();
+                            ctx.fill();
+
+                            // Front Cube Face - intensywny, czysty kolor toru
+                            ctx.fillStyle = note.color;
+                            ctx.shadowColor = note.color;
+                            ctx.shadowBlur = isStarPowerActive ? 24 : 16;
+
+                            ctx.beginPath();
+                            ctx.roundRect(-half, -half, size, size, Math.max(3, size * 0.12));
+                            ctx.fill();
+
+                            // Czysty, wyraźny neonowy kontur (w środku nic nie rysujemy!)
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.lineWidth = Math.max(1.2, size * 0.08);
+                            ctx.stroke();
+                        }
+
+                        ctx.restore();
+                    }
+                }
+            }
+
+            // 4b. Draw Sliced Flying Halves (Z rozżarzoną linią cięcia laserowego)
+            slicedHalves.forEach(h => {
+                const scale = fov / h.z;
+                const bend = getRoadBendX(h.z);
+                const wave = getRoadWaveY(h.z);
+                const screenX = cx + (h.laneX + bend) * scale;
+                const screenY = cy + (Hcam + wave) * scale + h.vy;
+                const size = Math.max(5, Math.min(38, scale * 20));
+
+                ctx.save();
+                ctx.translate(screenX, screenY);
+                ctx.rotate(h.angle);
+                ctx.globalAlpha = Math.max(0, h.alpha);
+                ctx.fillStyle = h.color;
+                ctx.shadowColor = h.color;
+                ctx.shadowBlur = 14;
+
+                ctx.beginPath();
+                ctx.rect(h.isLeft ? -size / 2 : 0, -size / 2, size / 2, size);
+                ctx.fill();
+
+                // Rozżarzona linia cięcia lasera (White-hot laser cut seam)
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = Math.max(1.5, size * 0.12);
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.moveTo(0, -size / 2);
+                ctx.lineTo(0, size / 2);
+                ctx.stroke();
+
+                ctx.restore();
+            });
+
+            // 5. Strike Zone Catcher Rings (at playerZ = 160)
+            const scalePlayer = fov / playerZ;
+            const playerBend = getRoadBendX(playerZ);
+            const playerWave = getRoadWaveY(playerZ);
+            const catcherBaseY = cy + (Hcam + playerWave) * scalePlayer;
+            const catcherColors = ['#ff003c', '#ffea00', '#0088ff'];
+
+            LANES_X.forEach((laneX, idx) => {
+                const catcherX = cx + (laneX + playerBend) * scalePlayer;
+                const catcherY = catcherBaseY;
+                const isPlayerInLane = (player.lane === idx);
+
+                ctx.save();
+                ctx.translate(catcherX, catcherY);
+
+                const rx = isPlayerInLane ? 28 : 22;
+                const ry = isPlayerInLane ? 11 : 8;
+                ctx.strokeStyle = catcherColors[idx];
+                ctx.lineWidth = isPlayerInLane ? 3 : 1.5;
+                ctx.shadowColor = catcherColors[idx];
+                ctx.shadowBlur = isPlayerInLane ? 22 : 6;
+
+                ctx.beginPath();
+                ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                if (isPlayerInLane) {
+                    ctx.fillStyle = catcherColors[idx];
+                    ctx.globalAlpha = 0.35 + bassEnergy * 0.25;
+                    ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            // 6. Player Cyber Blade / Craft (Cyber Starfighter z dopracowanym wyglądem i przechyleniem)
+            const px = cx + (player.x + playerBend) * scalePlayer;
+            const py = catcherBaseY - 14;
+
+            ctx.save();
+            ctx.translate(px, py);
+
+            // A. Hover Underglow on the Neon Highway
+            const underglowGrad = ctx.createRadialGradient(0, 16, 2, 0, 16, 42);
+            underglowGrad.addColorStop(0, isStarPowerActive ? 'rgba(255, 215, 0, 0.75)' : (bassEnergy > 0.5 ? 'rgba(0, 240, 255, 0.8)' : 'rgba(255, 0, 127, 0.6)'));
+            underglowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = underglowGrad;
+            ctx.beginPath();
+            ctx.ellipse(0, 16, 44, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Dynamic 3D Bank Rotation (Płynny, wyraźny przechył statku do skrętu)
+            ctx.rotate((player.tilt * Math.PI) / 180);
+
+            // B. Slash Arc Wave Animation
+            if (isSlashingAnimation > 0) {
+                ctx.save();
+                ctx.strokeStyle = isStarPowerActive ? '#ffd700' : '#00f0ff';
+                ctx.lineWidth = 6;
+                ctx.shadowColor = isStarPowerActive ? '#ffd700' : '#00f0ff';
+                ctx.shadowBlur = 30;
+                ctx.beginPath();
+                ctx.arc(0, -12, 54, -Math.PI * 0.85, -Math.PI * 0.15);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, -12, 52, -Math.PI * 0.80, -Math.PI * 0.20);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // C. Twin Plasma Exhaust Jets (Podwójne silniki plazmowe)
+            const flameLen = 16 + bassEnergy * 24;
+            const flameColor = isStarPowerActive ? '#ffe600' : (bassEnergy > 0.5 ? '#00f0ff' : '#ff007f');
+            [-10, 10].forEach(thrusterX => {
+                ctx.fillStyle = flameColor;
+                ctx.shadowColor = flameColor;
+                ctx.shadowBlur = 16;
+                ctx.beginPath();
+                ctx.moveTo(thrusterX - 4, 8);
+                ctx.lineTo(thrusterX, 8 + flameLen);
+                ctx.lineTo(thrusterX + 4, 8);
+                ctx.closePath();
+                ctx.fill();
+
+                // Rdzeń płomienia
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.moveTo(thrusterX - 2, 8);
+                ctx.lineTo(thrusterX, 8 + flameLen * 0.55);
+                ctx.lineTo(thrusterX + 2, 8);
+                ctx.closePath();
+                ctx.fill();
+
+                // Dysza
+                ctx.fillStyle = '#1c2438';
+                ctx.strokeStyle = isStarPowerActive ? '#ffd700' : '#00f0ff';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(thrusterX - 4.5, 5, 9, 4);
+                ctx.fillRect(thrusterX - 4.5, 5, 9, 4);
+            });
+
+            // D. Outer Swept Delta Wings (Czarne tytanowe skrzydła z neonowym konturem)
+            const hullGrad = ctx.createLinearGradient(0, -30, 0, 15);
+            hullGrad.addColorStop(0, '#10182b');
+            hullGrad.addColorStop(0.5, '#1e2d4d');
+            hullGrad.addColorStop(1, '#090e1c');
+            ctx.fillStyle = hullGrad;
+            ctx.strokeStyle = isStarPowerActive ? '#ffd700' : '#00f0ff';
+            ctx.lineWidth = 2.2;
+            ctx.shadowColor = isStarPowerActive ? '#ffd700' : '#00f0ff';
+            ctx.shadowBlur = isStarPowerActive ? 22 : 14;
+
+            ctx.beginPath();
+            ctx.moveTo(0, -30);          // Dziób
+            ctx.lineTo(16, -6);          // Krawędź natarcia
+            ctx.lineTo(34, 12);          // Końcówka prawego skrzydła
+            ctx.lineTo(26, 15);          // Prawa lotka
+            ctx.lineTo(14, 8);           // Wcięcie prawe
+            ctx.lineTo(0, 12);           // Środek rufy
+            ctx.lineTo(-14, 8);          // Wcięcie lewe
+            ctx.lineTo(-26, 15);         // Lewa lotka
+            ctx.lineTo(-34, 12);         // Końcówka lewego skrzydła
+            ctx.lineTo(-16, -6);         // Krawędź natarcia
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // E. Upper Cyber Armor Panels (Magenta/Gold akcenty pancerza)
+            ctx.fillStyle = isStarPowerActive ? '#ffd700' : '#ff007f';
+            ctx.shadowColor = isStarPowerActive ? '#ffd700' : '#ff007f';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.moveTo(0, -24);
+            ctx.lineTo(9, -2);
+            ctx.lineTo(5, 7);
+            ctx.lineTo(0, 4);
+            ctx.lineTo(-5, 7);
+            ctx.lineTo(-9, -2);
+            ctx.closePath();
+            ctx.fill();
+
+
+            // G. Glowing Cockpit Canopy (Krystaliczna neonowa kabina)
+            const canopyGrad = ctx.createLinearGradient(0, -18, 0, -6);
+            canopyGrad.addColorStop(0, '#ffffff');
+            canopyGrad.addColorStop(0.5, isStarPowerActive ? '#ffe600' : '#00f0ff');
+            canopyGrad.addColorStop(1, '#005588');
+            ctx.fillStyle = canopyGrad;
+            ctx.shadowColor = isStarPowerActive ? '#ffd700' : '#00f0ff';
+            ctx.shadowBlur = 14;
+            ctx.beginPath();
+            ctx.ellipse(0, -10, 4.5, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(0, -12, 1.8, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // 7. Sparks & Particles
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // 8. Floating Score Texts
+            floatingTexts.forEach(ft => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, ft.alpha);
+                ctx.fillStyle = ft.color;
+                ctx.shadowColor = ft.color;
+                ctx.shadowBlur = 10;
+                ctx.font = '900 16px -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            });
+        }
+
+        // =====================================================================
+        // CONTROLS & MAIN LOOP
+        // =====================================================================
+        let lastTime = performance.now();
+        const keys = {};
+
+        function loop(now) {
+            const dt = Math.min(0.04, (now - lastTime) / 1000);
+            lastTime = now;
+
+            if (isGameRunning) {
+                updateGame(dt);
+            }
+            drawGame();
+
+            requestAnimationFrame(loop);
+        }
+
+        // =====================================================================
+        // FULLSCREEN API SUPPORT
+        // =====================================================================
+        function toggleFullScreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                const elem = document.documentElement;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(err => console.warn(err));
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(err => console.warn(err));
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        function updateFullscreenState() {
+            const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+            document.body.classList.toggle('is-fullscreen', isFs);
+            const btn = document.getElementById('btnFullscreen');
+            if (btn) {
+                btn.innerHTML = isFs ? '🗗 <span>Wyjdź</span>' : '⛶ <span>Pełny ekran</span>';
+                btn.title = isFs ? 'Wyjdź z pełnego ekranu (Esc lub klawisz F)' : 'Włącz tryb pełnego ekranu (klawisz F)';
+            }
+        }
+        document.addEventListener('fullscreenchange', updateFullscreenState);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenState);
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isGameRunning) startGame();
+                else activateStarPower();
+            } else if (e.key === 'e' || e.key === 'E' || e.key === 'Shift') {
+                e.preventDefault();
+                activateStarPower();
+            } else if (e.key === 'f' || e.key === 'F') {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+                    e.preventDefault();
+                    toggleFullScreen();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Pointer Steering on Canvas (Click/Drag across 3 lanes)
+        const gameScreen = document.getElementById('gameScreen');
+        let touchStartY = 0;
+        let lastTouchTap = 0;
+
+        function handlePointerInput(e) {
+            if (!isGameRunning) return;
+            const rect = gameScreen.getBoundingClientRect();
+            const xRatio = (e.clientX - rect.left) / rect.width;
+            if (xRatio < 0.33) {
+                player.lane = 0;
+                player.targetX = LANES_X[0];
+            } else if (xRatio > 0.66) {
+                player.lane = 2;
+                player.targetX = LANES_X[2];
+            } else {
+                player.lane = 1;
+                player.targetX = LANES_X[1];
+            }
+        }
+
+        gameScreen.addEventListener('pointerdown', (e) => {
+            if (!isGameRunning) return;
+            try { gameScreen.setPointerCapture(e.pointerId); } catch(err) {}
+            touchStartY = e.clientY;
+
+            // Double tap detection on canvas to activate Star Power
+            const nowTap = performance.now();
+            if (nowTap - lastTouchTap < 280) {
+                activateStarPower();
+            }
+            lastTouchTap = nowTap;
+
+            handlePointerInput(e);
+        });
+
+        gameScreen.addEventListener('pointermove', (e) => {
+            if (!isGameRunning) return;
+            if (e.buttons > 0 || e.pointerType === 'touch' || e.pointerType === 'pen') {
+                // Swipe up gesture triggers Star Power
+                if (e.pointerType === 'touch' && touchStartY > 0 && (touchStartY - e.clientY) > 55) {
+                    activateStarPower();
+                    touchStartY = e.clientY;
+                }
+                handlePointerInput(e);
+            }
+        });
+
+        gameScreen.addEventListener('pointerup', (e) => {
+            try { gameScreen.releasePointerCapture(e.pointerId); } catch(err) {}
+            touchStartY = 0;
+        });
+        gameScreen.addEventListener('pointercancel', (e) => {
+            try { gameScreen.releasePointerCapture(e.pointerId); } catch(err) {}
+            touchStartY = 0;
+        });
+
+        // Touch Control Buttons Listeners (Fast response, prevent delay/zoom)
+        function bindTouchButton(btnId, laneIdx) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            const trigger = (e) => {
+                e.preventDefault();
+                player.lane = laneIdx;
+                player.targetX = LANES_X[laneIdx];
+            };
+            btn.addEventListener('pointerdown', trigger);
+            btn.addEventListener('touchstart', trigger, { passive: false });
+        }
+        bindTouchButton('btnTouchLeft', 0);
+        bindTouchButton('btnTouchCenter', 1);
+        bindTouchButton('btnTouchRight', 2);
+
+        const btnStar = document.getElementById('btnTouchStarPower');
+        if (btnStar) {
+            const triggerStar = (e) => {
+                e.preventDefault();
+                activateStarPower();
+            };
+            btnStar.addEventListener('pointerdown', triggerStar);
+            btnStar.addEventListener('touchstart', triggerStar, { passive: false });
+        }
+
+        // Start
+        updateControlUI();
+        initStarfield();
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
