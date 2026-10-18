@@ -713,9 +713,19 @@
                     <span id="bleStatus" style="font-size: 0.8rem; font-weight: bold; color: var(--accent-pink);">● Rozłączony</span>
                 </div>
 
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <div style="display: flex; gap: 8px; margin-bottom: 6px;">
                     <button class="btn-ui btn-blue" id="btnConnect" style="flex: 1;" onclick="connectTriki()">🔗 Połącz z Triki</button>
                     <button class="btn-ui btn-secondary" id="btnDisconnect" style="flex: 1;" onclick="disconnectTriki()" disabled>Rozłącz</button>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px;">
+                    <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text-dim);cursor:pointer;">
+                        <input type="checkbox" id="chkScanAll" style="accent-color:var(--accent-cyan);cursor:pointer;"> Skanuj wszystkie urządzenia BLE
+                    </label>
+                </div>
+
+                <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px;line-height:1.35;padding:6px 8px;background:rgba(0,240,255,0.04);border-radius:6px;border:1px solid rgba(0,240,255,0.12);">
+                    💡 <strong>Android:</strong> Włącz <strong>Lokalizację (GPS)</strong> i <strong>Bluetooth</strong> w telefonie. Zamknij aplikację Żabka (może blokować kapsel). Porusz kapslem przed kliknięciem.
                 </div>
 
                 <!-- Mode & Sensitivity -->
@@ -1238,25 +1248,40 @@
 
         async function connectTriki() {
             if (!navigator.bluetooth) {
-                alert('Web Bluetooth API nie jest obsługiwane w tej przeglądarce. Użyj Chrome lub Edge.');
+                alert('Web Bluetooth API nie jest obsługiwane w tej przeglądarce.\nNa telefonie Android użyj Google Chrome (upewnij się, że nie jesteś w trybie incognito/prywatnym).');
                 return;
             }
 
+            const scanAll = document.getElementById('chkScanAll')?.checked;
+
             try {
-                bleStatus.textContent = 'Łączenie...';
+                bleStatus.textContent = 'Szukanie kapsla...';
                 bleStatus.style.color = 'var(--accent-gold)';
                 btnConnect.disabled = true;
 
-                trikiDevice = await navigator.bluetooth.requestDevice({
+                const requestOptions = scanAll ? {
+                    acceptAllDevices: true,
+                    optionalServices: [NUS_SERVICE_UUID]
+                } : {
                     filters: [
                         { namePrefix: 'Triki' },
+                        { namePrefix: 'triki' },
+                        { namePrefix: 'TRIKI' },
                         { services: [NUS_SERVICE_UUID] }
                     ],
                     optionalServices: [NUS_SERVICE_UUID]
-                });
+                };
 
+                trikiDevice = await navigator.bluetooth.requestDevice(requestOptions);
+
+                bleStatus.textContent = 'Łączenie GATT...';
                 trikiDevice.addEventListener('gattserverdisconnected', onTrikiDisconnected);
                 const server = await trikiDevice.gatt.connect();
+
+                // Krótkie opóźnienie dla stabilizacji stosu BLE na Androidzie
+                await new Promise(r => setTimeout(r, 200));
+
+                bleStatus.textContent = 'Wykrywanie usług...';
                 const service = await server.getPrimaryService(NUS_SERVICE_UUID);
 
                 trikiTxChar = await service.getCharacteristic(NUS_TX_CHAR_UUID);
@@ -1265,12 +1290,28 @@
                     trikiLedChar = await service.getCharacteristic(NUS_LED_CHAR_UUID);
                 } catch (e) {}
 
+                bleStatus.textContent = 'Start strumienia...';
                 await trikiTxChar.startNotifications();
                 trikiTxChar.addEventListener('characteristicvaluechanged', handleTrikiNotification);
 
-                // Start IMU stream
+                // Start IMU stream (Komenda 8-bajtowa: 20 10 00 D0 07 68 00 03)
+                // Na Androidzie Nordic NUS RX wymaga zapisu bez odpowiedzi (writeValueWithoutResponse)
                 const startCmd = new Uint8Array([0x20, 0x10, 0x00, 0xD0, 0x07, 0x68, 0x00, 0x03]);
-                await trikiRxChar.writeValue(startCmd);
+                try {
+                    if (typeof trikiRxChar.writeValueWithoutResponse === 'function') {
+                        await trikiRxChar.writeValueWithoutResponse(startCmd);
+                    } else {
+                        await trikiRxChar.writeValue(startCmd);
+                    }
+                } catch (wErr) {
+                    try {
+                        await trikiRxChar.writeValue(startCmd);
+                    } catch (wErr2) {
+                        if (typeof trikiRxChar.writeValueWithResponse === 'function') {
+                            await trikiRxChar.writeValueWithResponse(startCmd);
+                        }
+                    }
+                }
 
                 trikiConnected = true;
                 bleStatus.textContent = 'Połączono';
@@ -1281,10 +1322,28 @@
             } catch (err) {
                 console.error('BLE error:', err);
                 trikiConnected = false;
-                bleStatus.textContent = 'Błąd';
-                bleStatus.style.color = 'var(--accent-pink)';
                 btnConnect.disabled = false;
                 btnDisconnect.disabled = true;
+
+                if (err.name === 'NotFoundError') {
+                    bleStatus.textContent = 'Anulowano wybór';
+                    bleStatus.style.color = 'var(--text-dim)';
+                    return;
+                }
+
+                const msg = err.message || err.name || 'Nieznany błąd';
+                bleStatus.textContent = 'Błąd: ' + (msg.length > 20 ? msg.slice(0, 20) + '…' : msg);
+                bleStatus.style.color = 'var(--accent-pink)';
+
+                alert(
+                    '⚠️ Błąd połączenia Bluetooth:\n' + msg + '\n\n' +
+                    'Rozwiązanie problemu na telefonie Android:\n' +
+                    '1. WŁĄCZ LOKALIZACJĘ (GPS) w telefonie – Android bez włączonej lokalizacji blokuje skanowanie Bluetooth w przeglądarce!\n' +
+                    '2. ZAMKNIJ aplikację Żabka (jeśli działa w tle, trzyma połączenie z kapslem i blokuje inne programy).\n' +
+                    '3. WYBUDŹ kapsel – potrząśnij nim, zakręć lub kliknij przycisk przed połączeniem (po chwili bezruchu kapsel zasypia).\n' +
+                    '4. Sprawdź czy Chrome ma uprawnienie "Urządzenia w pobliżu" (Ustawienia telefonu -> Aplikacje -> Chrome -> Uprawnienia).\n' +
+                    '5. Zaznacz pole "Skanuj wszystkie urządzenia BLE" pod przyciskiem, jeśli kapsel nie pojawia się na liście.'
+                );
             }
         }
 
@@ -1318,7 +1377,14 @@
         async function setTrikiLed(on) {
             if (!trikiLedChar) return;
             try {
-                await trikiLedChar.writeValueWithResponse(new Uint8Array([on ? 0x01 : 0x00]));
+                const data = new Uint8Array([on ? 0x01 : 0x00]);
+                if (typeof trikiLedChar.writeValueWithResponse === 'function') {
+                    await trikiLedChar.writeValueWithResponse(data);
+                } else if (typeof trikiLedChar.writeValueWithoutResponse === 'function') {
+                    await trikiLedChar.writeValueWithoutResponse(data);
+                } else {
+                    await trikiLedChar.writeValue(data);
+                }
                 sensorLed.textContent = on ? 'ŚWIECI' : 'Wyłączona';
             } catch (e) {}
         }
